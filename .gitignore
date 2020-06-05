@@ -1,0 +1,5 @@
+bin/
+obj/
+Translations/
+.vs
+.git
