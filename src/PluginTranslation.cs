@@ -56,6 +56,7 @@ Overwrite?";
 		public static readonly string Options = @"Password Profile Sync";
 		public static readonly string OptionsGlobal = @"KeePass config";
 		public static readonly string URL2Hint = @"Direct link to 'Change password' site";
+		public static readonly string SaveProfileInDB = @"Save db-specific";
 		#endregion
 
 		#region NO changes in this area

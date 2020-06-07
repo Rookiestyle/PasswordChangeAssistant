@@ -82,6 +82,11 @@ namespace PasswordChangeAssistant
 				LoadDBProfiles();
 				return;
 			}
+			if (e.Form is SingleLineEditForm)
+			{
+				HandleProfileSaveForm(e.Form as SingleLineEditForm);
+				return;
+			}
 			if (!(e.Form is PwEntryForm)) return; //Not the entry form => exit
 			m_pweForm = (PwEntryForm)e.Form;
 			PrepareEntryForm();
@@ -468,6 +473,52 @@ namespace PasswordChangeAssistant
 			m_profiles = m_host.Database.GetDBProfiles();
 			foreach (PwProfile profile in m_profiles)
 				Program.Config.PasswordGenerator.UserProfiles.AddDBProfile(profile);
+		}
+
+		private void HandleProfileSaveForm(SingleLineEditForm slef)
+		{
+			if (slef == null) return;
+
+			//slef.Text is not yet set unfortunately
+			string sTitle = Tools.GetField("m_strTitle", slef) as string;
+			if (string.IsNullOrEmpty(sTitle)) sTitle = slef.Text; //but maybe future KeePass versions will set it
+
+			if (sTitle != KPRes.GenProfileSave) return;
+			ComboBox cb = Tools.GetField("m_cmbEdit", slef) as ComboBox;
+			if (cb == null)
+			{
+				PluginDebug.AddError("Cound not add 'Save db-specific' checkbox", 0, "m_cmbEdit not found");
+				return;
+			}
+			CheckBox cbDB = new CheckBox();
+			cbDB.Left = cb.Left;
+			cbDB.Top = DpiUtil.ScaleIntX(146);
+			Button bOK = Tools.GetField("m_btnOK", slef) as Button;
+			if (bOK != null) cbDB.Top = bOK.Top + (int)((bOK.Height - cbDB.Height) / 2);
+			cbDB.Text = PluginTranslate.SaveProfileInDB;
+			cbDB.AutoSize = true;
+			cbDB.Enabled = (m_host.Database != null) && m_host.Database.IsOpen;
+			cbDB.CheckedChanged += AdjustProfileName;
+			cb.Parent.SuspendLayout();
+			cb.Parent.Controls.Add(cbDB);
+			cb.Parent.ResumeLayout();
+			cb.Parent.PerformLayout();
+
+			cb.TextChanged += (o, e) =>
+			{
+				cbDB.CheckedChanged -= AdjustProfileName;
+				cbDB.Checked = cbDB.Enabled && (cb.Text.EndsWith(Config.ProfileDBOnly));
+				cbDB.CheckedChanged += AdjustProfileName;
+			};
+		}
+
+		private void AdjustProfileName(object sender, EventArgs e)
+		{
+			CheckBox cbDB = sender as CheckBox;
+			if (cbDB == null) return;
+			ComboBox cb = Tools.GetField("m_cmbEdit", cbDB.FindForm()) as ComboBox;
+			if (cbDB.Checked) cb.Text += Config.ProfileDBOnly;
+			else if (cb.Text.EndsWith(Config.ProfileDBOnly)) cb.Text = cb.Text.Substring(0, cb.Text.Length - Config.ProfileDBOnly.Length);
 		}
 
 		private void OptionsFormShown(object sender, Tools.OptionsFormsEventArgs e)
