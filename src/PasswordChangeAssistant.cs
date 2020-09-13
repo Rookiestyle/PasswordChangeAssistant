@@ -115,12 +115,12 @@ namespace PasswordChangeAssistant
 			m_host.MainWindow.EntryContextMenu.Opening += OnEntryMenuOpening;
 			m_ContextMenuPCA = new ToolStripMenuItem(PluginTranslate.PluginName + "...");
 			m_ContextMenuPCA.Click += OnShowPCAForm;
-			m_ContextMenuPCA.Image = DPIAwareness.Scale(Resources.pca, 16, 16);
+			m_ContextMenuPCA.Image = Config.ScaleImage(Resources.pca);
 			m_host.MainWindow.EntryContextMenu.Items.Insert(m_host.MainWindow.EntryContextMenu.Items.Count, m_ContextMenuPCA);
 
 			m_MainMenuPCA = new ToolStripMenuItem(PluginTranslate.PluginName + "...");
 			m_MainMenuPCA.Click += OnShowPCAForm;
-			m_MainMenuPCA.Image = DPIAwareness.Scale(Resources.pca, 16, 16);
+			m_MainMenuPCA.Image = Config.ScaleImage(Resources.pca);
 			try
 			{
 				ToolStripMenuItem entryMenu = m_host.MainWindow.MainMenu.Items["m_menuEntry"] as ToolStripMenuItem;
@@ -189,6 +189,12 @@ namespace PasswordChangeAssistant
 			m_pweForm.FormClosed += OnFormClosed;
 			m_pwgForm = null;
 			LoadDBProfiles();
+
+			if (m_host.MainWindow.GetSelectedEntriesCount() != 1)
+			{
+				PluginDebug.AddInfo("Multiple entries selected - No PCA button added", 0);
+				return;
+			}
 			SaveOldPassword();
 			//try to get the edit mode
 			PwEditMode m = EditMode();
@@ -248,7 +254,7 @@ namespace PasswordChangeAssistant
 				m_btnPCA.Width = 48;
 				m_btnPCA.Height = 35;
 			}
-			m_btnPCA.Image = DPIAwareness.Scale(Resources.pca, 16, 16);
+			m_btnPCA.Image = Config.ScaleImage(Resources.pca, 16, 16);
 
 			if (btnPwGen != null) btnPwGen.Parent.Controls.Add(m_btnPCA);
 			else if (btnHide != null) btnHide.Parent.Controls.Add(m_btnPCA);
@@ -757,7 +763,7 @@ namespace PasswordChangeAssistant
 		{
 			get
 			{
-				return DPIAwareness.Scale(Resources.pca, 16, 16);
+				return KeePassLib.Utility.GfxUtil.ScaleImage(Resources.pca, DpiUtil.ScaleIntX(16), DpiUtil.ScaleIntY(16));
 			}
 		}
 	}

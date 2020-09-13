@@ -52,7 +52,6 @@ namespace PasswordChangeAssistant
 
 		private Action<object, CancelEventArgs> m_OnProfilesOpening = null;
 		private PCAInitData m_pcadata = null;
-
 		#endregion
 
 		public bool CanCloseWithoutDataLoss { get { return true; } }
@@ -184,16 +183,16 @@ namespace PasswordChangeAssistant
 
 			#region password profile button - context menu, integration of PasswordProfileSync, ...
 			ttPwGen.SetToolTip(GeneratePW, KPRes.GeneratePassword);
-			GeneratePW.Image = UIUtil.CreateDropDownImage(DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_Key_New"), 16, 16));
+			GeneratePW.Image = UIUtil.CreateDropDownImage(Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_Key_New")));
 
-			bChangePassword.Image = DPIAwareness.Scale(Resources.pca, 16, 16);
+			bChangePassword.Image = Config.ScaleImage(Resources.pca);
 
 			//Password profile dropdown
 			UpdateProfilesContextMenu();
 			#endregion
 
 			Program.Translation.ApplyTo("KeePass.Forms.PwEntryForm.m_ctxDefaultTimes", m_ctxDefaultTimes.Items);
-			bExpiry.Image = UIUtil.CreateDropDownImage(DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_History"), 16, 16));
+			bExpiry.Image = UIUtil.CreateDropDownImage(Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_History")));
 			InitExpiryDate();
 
 			#region Show entry title - shortened if required
@@ -528,13 +527,13 @@ namespace PasswordChangeAssistant
 
 		public void UpdateProfilesContextMenu()
 		{
-			Image ImgProfPrevious = DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_CompFile"), 16, 16);
-			Image ImgProfAuto = DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_FileNew"), 16, 16);
-			Image ImgProfStandard = DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_KOrganizer"), 16, 16);
+			Image ImgProfPrevious = Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_CompFile"));
+			Image ImgProfAuto = Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_FileNew"));
+			Image ImgProfStandard = Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_KOrganizer"));
 			ctxPWGen.Items.Clear();
-			ctxPWGen.ImageScalingSize = DPIAwareness.Size16;
+			ctxPWGen.ImageScalingSize = new Size(DpiUtil.ScaleIntX(16), DpiUtil.ScaleIntY(16));
 
-			ToolStripMenuItem miProfile = new ToolStripMenuItem("Password Generator", DPIAwareness.Scale((Image)Program.Resources.GetObject("B16x16_Key_New"), 16, 16), OnPWGenOpen);
+			ToolStripMenuItem miProfile = new ToolStripMenuItem("Password Generator", Config.ScaleImage((Image)Program.Resources.GetObject("B16x16_Key_New"), 16, 16), OnPWGenOpen);
 			Dictionary<string, string> translation = Program.Translation.SafeGetStringTableDictionary("KeePass.Forms.PwEntryForm.m_ctxPwGen");
 			string translated = string.Empty;
 			if (translation.TryGetValue("m_ctxPwGenOpen", out translated))

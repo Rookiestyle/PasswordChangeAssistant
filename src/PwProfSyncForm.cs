@@ -127,11 +127,11 @@ namespace PasswordChangeAssistant
 
 			if (!KeePass.Program.Config.UI.OptimizeForScreenReader)
 			{
-				bDB2Other.Image = DPIAwareness.Scale(Resources.arrow, 40, 20);
-				bOther2DB.Image = DPIAwareness.Scale(Resources.arrow, 40, 20);
+				bDB2Other.Image = Config.ScaleImage(Resources.arrow, 40, 20);
+				bOther2DB.Image = Config.ScaleImage(Resources.arrow, 40, 20);
 				bDB2Other.Image.RotateFlip(RotateFlipType.Rotate180FlipY);
 				bDB2Other.Text = bOther2DB.Text = string.Empty;
-				pbPluginPicture.Image = DPIAwareness.Scale(pbPluginPicture.Image, Math.Min(96, pbPluginPicture.Image.Width), Math.Min(96, pbPluginPicture.Image.Height));
+				pbPluginPicture.Image = Config.ScaleImage(pbPluginPicture.Image, Math.Min(96, pbPluginPicture.Image.Width), Math.Min(96, pbPluginPicture.Image.Height));
 			}
 			else pbPluginPicture.Visible = false;
 		}
