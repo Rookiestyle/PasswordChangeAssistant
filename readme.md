@@ -67,3 +67,4 @@ Please follow these links to download the plugin file itself.
 If you're interested in any of the available translations in addition, please download them from the [Translations](Translations) folder.
 ## Requirements
 * KeePass: 2.40
+* .NET framework: 3.5
