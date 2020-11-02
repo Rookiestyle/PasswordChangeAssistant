@@ -467,12 +467,13 @@ namespace PasswordChangeAssistant
 		#endregion
 
 		#region password generation
+		private byte[] m_pbEntropy = null;
 		private void CreateNewPassword(PwProfile prof)
 		{
 			if (prof == null) prof = PwProfile.DeriveFromPassword(m_pcadata.OldPassword);
-			byte[] pbEntropy = EntropyForm.CollectEntropyIfEnabled(prof);
+			if (prof.CollectUserEntropy && (m_pbEntropy == null)) m_pbEntropy = EntropyForm.CollectEntropyIfEnabled(prof);
 			ProtectedString psNew;
-			PwGenerator.Generate(out psNew, prof, pbEntropy, Program.PwGeneratorPool);
+			PwGenerator.Generate(out psNew, prof, m_pbEntropy, Program.PwGeneratorPool);
 			m_icgNewPassword.SetPassword(psNew, true);
 		}
 

@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Linq;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Collections;
+using KeePassLib.Cryptography;
 
 namespace PasswordChangeAssistant
 {
@@ -61,10 +62,10 @@ namespace PasswordChangeAssistant
 
 			Tools.OptionsFormShown += OptionsFormShown;
 			Tools.OptionsFormClosed += OptionsFormClosed;
+			m_host.PwGeneratorPool.Add(new PwProfile1PerSet());
 
 			Type t = typeof(KeePass.Program).Assembly.GetType("KeePass.UI.AsyncPwListUpdate");
 			m_miSprCompileFn = t.GetMethod("SprCompileFn", BindingFlags.Static | BindingFlags.NonPublic);
-
 			return true;
 		}
 
@@ -78,6 +79,7 @@ namespace PasswordChangeAssistant
 			if (e.Form is PwGeneratorForm)
 			{
 				m_pwgForm = (PwGeneratorForm)e.Form;
+				m_pwgForm.Shown += OnPwGeneratorFormShown;
 				m_pwgForm.FormClosed += OnFormClosed;
 				LoadDBProfiles();
 				return;
@@ -90,6 +92,43 @@ namespace PasswordChangeAssistant
 			if (!(e.Form is PwEntryForm)) return; //Not the entry form => exit
 			m_pweForm = (PwEntryForm)e.Form;
 			PrepareEntryForm();
+		}
+
+		private void OnPwGeneratorFormShown(object sender, EventArgs e)
+		{
+			List<string> lMsg = new List<string>();
+			Control cGroup = Tools.GetControl("m_grpCurOpt", m_pwgForm);
+			ComboBox cbProfile = Tools.GetControl("m_cmbProfiles", m_pwgForm) as ComboBox;
+			if (cbProfile == null) lMsg.Add("Could not locate m_cmbProfiles");
+			else
+			{
+				cbProfile.SelectedIndexChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+				lMsg.Add("Found and hooked " + cbProfile.Name);
+			}
+			if (cGroup == null) lMsg.Add("Could not locate m_grpCurOpt");
+			else
+			{
+				foreach (Control c in cGroup.Controls)
+				{
+					if (c is RadioButton) (c as RadioButton).CheckedChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+					else if (c is CheckBox) (c as CheckBox).CheckedChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+					else if (c is ComboBox) (c as ComboBox).SelectedIndexChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+					else if (c is TextBox) (c as TextBox).TextChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+					else if (c is NumericUpDown) (c as NumericUpDown).ValueChanged += PwProfile1PerSet.EnablePwGeneratorControls;
+					else continue;
+					lMsg.Add("Found and hooked " + c.Name);
+				}
+			}
+			PluginDebug.AddInfo("Prepare PwGenerator", 0, lMsg.ToArray());
+			if ((cbProfile != null) && (m_pweForm != null) && !m_pweForm.Disposing && !m_pweForm.IsDisposed)
+			{
+				string sProfile = m_pweForm.EntryRef.Strings.ReadSafeEx(Config.ProfileLastUsedProfile);
+				if (!string.IsNullOrEmpty(sProfile) && cbProfile.Items.Contains(sProfile))
+				{
+					cbProfile.SelectedIndex = cbProfile.Items.IndexOf(sProfile);
+				}
+			}
+			PwProfile1PerSet.EnablePwGeneratorControls(sender, e);
 		}
 
 		private void OnFormClosed(object sender, FormClosedEventArgs e)
