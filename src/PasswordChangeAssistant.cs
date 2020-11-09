@@ -524,11 +524,11 @@ namespace PasswordChangeAssistant
 		{
 			if (slef == null) return;
 
-			//slef.Text is not yet set unfortunately
-			string sTitle = Tools.GetField("m_strTitle", slef) as string;
-			if (string.IsNullOrEmpty(sTitle)) sTitle = slef.Text; //but maybe future KeePass versions will set it
+			//SingleLineEditForm is used multiple times
+			//Check whether it's called from with the PwGeneratorForm
+			System.Diagnostics.StackTrace st = new System.Diagnostics.StackTrace();
+			if (st.GetFrames().SingleOrDefault(x => x.GetMethod().Name.Contains("OnBtnProfileSave")) == null) return;
 
-			if (sTitle != KPRes.GenProfileSave) return;
 			ComboBox cb = Tools.GetField("m_cmbEdit", slef) as ComboBox;
 			if (cb == null)
 			{
