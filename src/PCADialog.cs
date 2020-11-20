@@ -343,7 +343,7 @@ namespace PasswordChangeAssistant
 				}
 				else
 				{
-					System.Diagnostics.Process.Start(sURL);
+					Tools.OpenUrl(sURL);
 				}
 			}
 			catch { }
