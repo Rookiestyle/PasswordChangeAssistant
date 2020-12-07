@@ -198,7 +198,7 @@ namespace PasswordChangeAssistant
 				else
 					SelectedEntry.Strings.Set(Config.PCAURLField, new ProtectedString(false, m_pcaForm.URL2));
 				SelectedEntry.Touch(true);
-				Program.MainForm.UpdateUI(false, null, false, null, true, null, true);
+				Tools.RefreshEntriesList(true);
 			}
 			m_pcaForm.CleanupEx();
 			m_pcaForm = null;
