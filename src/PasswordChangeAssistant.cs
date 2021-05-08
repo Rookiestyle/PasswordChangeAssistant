@@ -89,7 +89,7 @@ namespace PasswordChangeAssistant
 				HandleProfileSaveForm(e.Form as SingleLineEditForm);
 				return;
 			}
-			if (!(e.Form is PwEntryForm)) return; //Not the entry form => exit
+			if (!(e.Form is PwEntryForm) || m_pweForm != null) return; //Not the entry form => exit
 			m_pweForm = (PwEntryForm)e.Form;
 			PrepareEntryForm();
 		}
@@ -229,16 +229,20 @@ namespace PasswordChangeAssistant
 			m_pwgForm = null;
 			LoadDBProfiles();
 
-			if (m_host.MainWindow.GetSelectedEntriesCount() != 1)
+			//try to get the edit mode
+			var spb = DoShowPCAButton();
+			if (spb == ShowPCAButton.Error) m_pweForm.Shown += OnEntryFormShown; //Reading the edit mode failed, try this as fallback
+			else if (spb == ShowPCAButton.NoShowMultiple)
 			{
 				PluginDebug.AddInfo("Multiple entries selected - No PCA button added", 0);
 				return;
 			}
+			else if (spb == ShowPCAButton.NoShowOthers)
+			{
+				PluginDebug.AddInfo("Neither CREATE nor EDIT mode - No PCA button added", 0);
+				return;
+			}
 			SaveOldPassword();
-			//try to get the edit mode
-			PwEditMode m = EditMode();
-			if (m == PwEditMode.Invalid) m_pweForm.Shown += OnEntryFormShown; //Reading the edit mode failed, try this as fallback
-			else if (m != PwEditMode.EditExistingEntry) return; // we're not in edit mode
 
 			m_pweForm.Resize += OnEntryFormResize;
 
@@ -264,11 +268,26 @@ namespace PasswordChangeAssistant
 			menuitem.Name = PluginTranslate.PluginName + "ShowPCAFormFromEntry";
 			cmsPCA.Items.Add(menuitem);
 			m_btnPCA.ContextMenuStrip = cmsPCA;
+			cmsPCA.Opening += cmsPCAOpening;
 			m_btnPCA.Click += (o, x) => m_btnPCA.ContextMenuStrip.Show(m_btnPCA, 0, m_btnPCA.Height);
 			#endregion
 
 			//finally add the button to the form
 			m_btnPCA.BringToFront();
+		}
+
+		private void cmsPCAOpening(object sender, EventArgs e)
+		{
+			ContextMenuStrip cmsPCA = sender as ContextMenuStrip;
+			if (cmsPCA == null) return;
+			cmsPCA.Opening -= cmsPCAOpening;
+			if (m_pweForm.Text == KPRes.AddEntry)
+			{
+				SelectedEntry = null;
+				cmsPCA.Items.RemoveByKey(PluginTranslate.PluginName + "OldCopy");
+				cmsPCA.Items.RemoveByKey(PluginTranslate.PluginName + "OldType");
+				cmsPCA.Items.RemoveByKey(PluginTranslate.PluginName + "ShowPCAFormFromEntry");
+			}
 		}
 
 		private void CreatePCAButton()
@@ -337,10 +356,20 @@ namespace PasswordChangeAssistant
 			m_pcaForm = null;
 		}
 
-		private PwEditMode EditMode()
+		private enum ShowPCAButton
 		{
+			Error,
+			ShowEditSingle,
+			ShowAddSingle,
+			NoShowMultiple,
+			NoShowOthers
+		}
+		private ShowPCAButton DoShowPCAButton()
+		{
+			ShowPCAButton spb = ShowPCAButton.Error;
+			if (m_pweForm == null) return spb;
+
 			PwEditMode m = PwEditMode.Invalid;
-			if (m_pweForm == null) return m;
 			PropertyInfo pi = typeof(PwEntryForm).GetProperty("EditModeEx");
 			if (pi != null)
 			{ //will work starting with KeePass 2.41, preferred way as it's a public attribute
@@ -350,13 +379,26 @@ namespace PasswordChangeAssistant
 			{ // try reading private field
 				m = (PwEditMode)Tools.GetField("m_pwEditMode", m_pweForm);
 			}
-			return m;
+			if (m == PwEditMode.Invalid) return spb;
+			spb = ShowPCAButton.NoShowOthers;
+			if (m != PwEditMode.EditExistingEntry && m != PwEditMode.AddNewEntry) return spb;
+
+			spb = ShowPCAButton.NoShowMultiple;
+			pi = typeof(PwEntryForm).GetProperty("MultipleValuesEntryContext");
+			object mvec = null;
+			if (pi != null) mvec = pi.GetValue(m_pweForm, null);
+			else mvec = Tools.GetField("m_mvec", m_pweForm);
+			if (mvec != null) return spb; //NULL in case only one entry is edited/displayed
+
+			spb = m == PwEditMode.AddNewEntry ? ShowPCAButton.ShowAddSingle : ShowPCAButton.ShowEditSingle;
+
+			return spb;
 		}
 
 		private void OnEntryFormShown(object sender, EventArgs e)
 		{
-			Tools.ShowInfo("a");
-			m_btnPCA.Visible = (m_pweForm.Text == KPRes.EditEntry);
+			m_btnPCA.Visible = (m_pweForm.Text == KPRes.EditEntry) || (m_pweForm.Text == KPRes.AddEntry);
+			m_btnPCA.Visible &= m_host.MainWindow.GetSelectedEntriesCount() == 1;
 			m_pweForm.Shown -= OnEntryFormShown;
 		}
 
@@ -375,6 +417,7 @@ namespace PasswordChangeAssistant
 
 		private void PasswordTypeClick(object sender, EventArgs e)
 		{
+			if (SelectedEntry == null && m_pweForm != null) SelectedEntry = m_pweForm.EntryRef; //New entry
 			if ((sender as ToolStripMenuItem).Name.Contains("Old"))
 				PasswordType(m_oldPW);
 			else if ((sender as ToolStripMenuItem).Name.Contains("New"))
@@ -386,6 +429,7 @@ namespace PasswordChangeAssistant
 
 		private void PasswordCopyClick(object sender, EventArgs e)
 		{
+			if (SelectedEntry == null && m_pweForm != null) SelectedEntry = m_pweForm.EntryRef; //New entry
 			if ((sender as ToolStripMenuItem).Name.Contains("Old"))
 				PasswordCopy(m_oldPW);
 			else if ((sender as ToolStripMenuItem).Name.Contains("New"))
@@ -801,7 +845,7 @@ namespace PasswordChangeAssistant
 		public override System.Drawing.Image SmallIcon
 		{
 			get
-			{
+			{ 
 				return KeePassLib.Utility.GfxUtil.ScaleImage(Resources.pca, DpiUtil.ScaleIntX(16), DpiUtil.ScaleIntY(16));
 			}
 		}
