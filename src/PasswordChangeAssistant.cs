@@ -294,6 +294,7 @@ namespace PasswordChangeAssistant
 		{
 			Control btnHide = Tools.GetControl("m_cbHidePassword", m_pweForm);
 			Control btnPwGen = Tools.GetControl("m_btnGenPw", m_pweForm);
+			Control btnQualityCheck = Tools.GetControl("m_cbQualityCheck", m_pweForm);
 			m_btnPCA = new Button();
 			m_btnPCA.Name = "m_btnPCA";
 			ToolTip tt = new ToolTip();
@@ -311,6 +312,12 @@ namespace PasswordChangeAssistant
 				m_btnPCA.Left = 634;
 				m_btnPCA.Width = 48;
 				m_btnPCA.Height = 35;
+			}
+			if (btnQualityCheck != null)
+			{
+				btnQualityCheck.Width /= 2;
+				m_btnPCA.Width /= 2;
+				m_btnPCA.Left += btnQualityCheck.Width + 1;
 			}
 			m_btnPCA.Image = Config.ScaleImage(Resources.pca, 16, 16);
 
