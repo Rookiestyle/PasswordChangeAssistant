@@ -415,7 +415,7 @@ namespace PasswordChangeAssistant
 			{
 				ToolStripItem x = tsmiOpenWith.DropDownItems[0];
 				tsmiOpenWith.DropDownItems.Remove(x);
-				if (!string.IsNullOrEmpty(m_pcadata.URL2) && (x is ToolStripMenuItem))
+				if (!string.IsNullOrEmpty(m_pcadata.PCAURL) && (x is ToolStripMenuItem))
 				{
 					ToolStripMenuItem newItem = new ToolStripMenuItem(x.Text, x.Image);
 					newItem.Tag = x.Tag;
@@ -430,18 +430,18 @@ namespace PasswordChangeAssistant
 
 			lURL.Links.Clear();
 			lURL.Text = KPRes.Url + ": " + KPRes.Empty;
-			if (!string.IsNullOrEmpty(m_pcadata.URL))
+			if (!string.IsNullOrEmpty(m_pcadata.MainURL))
 			{
-				string url = CompileUrl(m_pcadata.URL);
-				lURL.Links.Add(KPRes.Url.Length + 2, m_pcadata.URL.Length, m_pcadata.URL);
-				lURL.Text = KPRes.Url + ": " + GetDisplayUrl(m_pcadata.URL, 60);
+				string url = CompileUrl(m_pcadata.MainURL);
+				lURL.Links.Add(KPRes.Url.Length + 2, m_pcadata.MainURL.Length, m_pcadata.MainURL);
+				lURL.Text = KPRes.Url + ": " + GetDisplayUrl(m_pcadata.MainURL, 60);
 			}
 
 			lURL2.Links.Clear();
 			lURL2.Text = KPRes.Url + ": ";
 			tbURL2.Left = lURL2.Left + lURL2.Width;
 			tbURL2.Width = ClientSize.Width - tbURL2.Left - lURL2.Left;
-			if (!string.IsNullOrEmpty(m_pcadata.URL2)) tbURL2.Text = m_pcadata.URL2;
+			if (!string.IsNullOrEmpty(m_pcadata.PCAURL)) tbURL2.Text = m_pcadata.PCAURL;
 		}
 
 		private string CompileUrl(string url)

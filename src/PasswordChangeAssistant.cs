@@ -338,7 +338,7 @@ namespace PasswordChangeAssistant
 				pcadata.Expiry = ecg.Value;
 				pcadata.SetExpiry = (pcadata.Expires != m_pweForm.EntryRef.Expires) || (pcadata.Expiry != m_pweForm.EntryRef.ExpiryTime);
 			}
-			pcadata.URL2 = pcadata.Strings.ReadSafe(Config.PCAURLField);
+			pcadata.PCAURL = pcadata.Strings.ReadSafe(Config.PCAURLField);
 			DerefStrings(pcadata, m_pweForm.EntryRef);
 			m_pcaForm.Init(pcadata, ProfilesOpening);
 			if (m_pcaForm.ShowDialog(m_pweForm) == DialogResult.OK)
@@ -452,15 +452,15 @@ namespace PasswordChangeAssistant
 		private void DerefStrings(PCAInitData pcadata, PwEntry pe)
 		{
 			if (m_miSprCompileFn == null) return;
-			if (pcadata.URL.Contains("{"))
+			if (pcadata.MainURL.Contains("{"))
 			{
 				PwListItem pli = new PwListItem(pe);
-				pcadata.URL = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.URL, pli });
+				pcadata.MainURL = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.MainURL, pli });
 			}
-			if (pcadata.URL2.Contains("{"))
+			if (pcadata.PCAURL.Contains("{"))
 			{
 				PwListItem pli = new PwListItem(pe);
-				pcadata.URL2 = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.URL2, pli });
+				pcadata.PCAURL = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.PCAURL, pli });
 			}
 		}
 

@@ -12,12 +12,21 @@ namespace PasswordChangeAssistant
 {
 	public class PCAInitData
 	{
+		private PwEntry m_pe = null;
 		public ProtectedStringDictionary Strings;
-		public string Title;
-		public string User;
+		private string m_Title = string.Empty;
+		public string Title
+		{
+			get { return m_pe != null ? m_pe.Strings.ReadSafe(PwDefs.TitleField) : m_Title; }
+		}
+		private string m_User = string.Empty;
+		public string User
+		{
+			get { return m_pe != null ? m_pe.Strings.ReadSafe(PwDefs.UserNameField) : m_User; }
+		}
 		public ProtectedString OldPassword;
-		public string URL;
-		public string URL2;
+		public string MainURL;
+		public string PCAURL;
 		public DateTime Expiry;
 		public bool Expires;
 		public bool SetExpiry;
@@ -25,15 +34,16 @@ namespace PasswordChangeAssistant
 		public PCAInitData(PwEntry pe)
 		{
 			if (pe == null) return;
-			Title = pe.Strings.ReadSafe(PwDefs.TitleField);
-			User = pe.Strings.ReadSafe(PwDefs.UserNameField);
+			m_pe = pe;
+			m_Title = pe.Strings.ReadSafe(PwDefs.TitleField);
+			m_User = pe.Strings.ReadSafe(PwDefs.UserNameField);
 			Expires = pe.Expires;
 			Expiry = pe.ExpiryTime;
 			OldPassword = pe.Strings.GetSafe(PwDefs.PasswordField);
 			PCASequence = PasswordChangeAssistantExt.GetPCASequence(pe, Config.DefaultPCASequences[PluginTranslate.DefaultSequence01]);
 			SetExpiry = false;
-			URL = pe.Strings.ReadSafe(PwDefs.UrlField);
-			URL2 = pe.Strings.ReadSafe(Config.PCAURLField);
+			MainURL = pe.Strings.ReadSafe(PwDefs.UrlField);
+			PCAURL = pe.Strings.ReadSafe(Config.PCAURLField);
 			Strings = pe.Strings;
 		}
 	}
