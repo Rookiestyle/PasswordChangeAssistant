@@ -57,6 +57,10 @@ Overwrite?";
 		public static readonly string OptionsGlobal = @"KeePass config";
 		public static readonly string URL2Hint = @"Direct link to 'Change password' site";
 		public static readonly string SaveProfileInDB = @"Save db-specific";
+		public static readonly string OptionsPWSyncFormCaption = @"Password Profile Sync";
+		public static readonly string PWFormShownCaption = @"Password Change Assistant form is shown";
+		public static readonly string OpenUrlForPwChange = @"Open password change site in default browser";
+		public static readonly string OpenUrlForPwChangeShift = @"Hold down [Shift] to invert this behaviour.";
 		#endregion
 
 		#region NO changes in this area

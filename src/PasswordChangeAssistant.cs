@@ -182,6 +182,8 @@ namespace PasswordChangeAssistant
 			PCAInitData pcadata = new PCAInitData(SelectedEntry);
 			DerefStrings(pcadata, SelectedEntry);
 			m_pcaForm.Init(pcadata, ProfilesOpening);
+			if (Config.OpenUrlForPwChange ^ ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)) 
+				pcadata.OpenURL();
 			if (m_pcaForm.ShowDialog(m_host.MainWindow) == DialogResult.OK)
 			{
 				SelectedEntry.CreateBackup(Program.MainForm.ActiveDatabase);
@@ -621,6 +623,7 @@ namespace PasswordChangeAssistant
 		{
 			PwProfSyncForm form = new PwProfSyncForm();
 			form.SetHomeDB(m_host.Database);
+			form.cbOpenUrlForPwChange.Checked = Config.OpenUrlForPwChange;
 			Tools.AddPluginToOptionsForm(this, form);
 		}
 
@@ -635,6 +638,7 @@ namespace PasswordChangeAssistant
 			PwDatabase otherDB = null;
 			bool MoveProfiles = true;
 			form.GetWorklist(out profilesDB, out profilesOther, out otherDB, out MoveProfiles);
+			Config.OpenUrlForPwChange = form.cbOpenUrlForPwChange.Checked;
 			form.Dispose();
 
 			//Update password profiles in active database
@@ -718,8 +722,8 @@ namespace PasswordChangeAssistant
 		{
 			if ((m_host.Database == null) || !m_host.Database.IsOpen)
 			{
-				Tools.ShowError(PluginTranslate.NoDB);
-				return;
+				//Tools.ShowError(PluginTranslate.NoDB);
+				//return;
 			}
 			Tools.ShowOptions();
 		}

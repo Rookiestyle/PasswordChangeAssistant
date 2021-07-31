@@ -40,6 +40,11 @@ namespace PasswordChangeAssistant
 			Text = PluginTranslate.Options;
 			lActiveDB.Text = PluginTranslate.OptionsActiveDB;
 			cbModeCopy.Text = PluginTranslate.ModeCopy;
+			gPWFormShown.Text = PluginTranslate.PWFormShownCaption;
+			tpPCA.Text = PluginTranslate.PluginName;
+			tpPWSync.Text = PluginTranslate.OptionsPWSyncFormCaption;
+			cbOpenUrlForPwChange.Text = PluginTranslate.OpenUrlForPwChange;
+			lOpenUrlForPwChangeShift.Text = PluginTranslate.OpenUrlForPwChangeShift;
 		}
 
 		public void SetHomeDB(PwDatabase db)
