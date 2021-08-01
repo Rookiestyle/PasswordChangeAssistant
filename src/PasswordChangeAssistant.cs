@@ -59,6 +59,7 @@ namespace PasswordChangeAssistant
 			m_menu.Image = SmallIcon;
 			m_host.MainWindow.ToolsMenu.DropDownItems.Add(m_menu);
 			m_host.MainWindow.DocumentManager.ActiveDocumentSelected += (o, e) => LoadDBProfiles();
+			m_host.MainWindow.FileOpened += OnFileOpened;
 
 			Tools.OptionsFormShown += OptionsFormShown;
 			Tools.OptionsFormClosed += OptionsFormClosed;
@@ -67,6 +68,11 @@ namespace PasswordChangeAssistant
 			Type t = typeof(KeePass.Program).Assembly.GetType("KeePass.UI.AsyncPwListUpdate");
 			m_miSprCompileFn = t.GetMethod("SprCompileFn", BindingFlags.Static | BindingFlags.NonPublic);
 			return true;
+		}
+
+		private void OnFileOpened(object sender, FileOpenedEventArgs e)
+		{
+			DataMigration.CheckAndMigrate(e.Database);
 		}
 
 		private void PluginTranslate_TranslationChanged(object sender, TranslationChangedEventArgs e)
@@ -122,7 +128,7 @@ namespace PasswordChangeAssistant
 			PluginDebug.AddInfo("Prepare PwGenerator", 0, lMsg.ToArray());
 			if ((cbProfile != null) && (m_pweForm != null) && !m_pweForm.Disposing && !m_pweForm.IsDisposed)
 			{
-				string sProfile = m_pweForm.EntryRef.Strings.ReadSafeEx(Config.ProfileLastUsedProfile);
+				string sProfile = m_pweForm.CustomDataGetSafe(Config.ProfileLastUsedProfile);
 				if (!string.IsNullOrEmpty(sProfile) && cbProfile.Items.Contains(sProfile))
 				{
 					cbProfile.SelectedIndex = cbProfile.Items.IndexOf(sProfile);
@@ -191,15 +197,10 @@ namespace PasswordChangeAssistant
 				SelectedEntry.Expires = m_pcaForm.EntryExpiry.Checked;
 				if (SelectedEntry.Expires)
 					SelectedEntry.ExpiryTime = m_pcaForm.EntryExpiry.Value.ToUniversalTime();
-				if (string.IsNullOrEmpty(m_pcaForm.Sequence))
-					SelectedEntry.Strings.Remove(Config.PCASequence);
-				else
-					SelectedEntry.Strings.Set(Config.PCASequence, new ProtectedString(false, m_pcaForm.Sequence));
-				if (string.IsNullOrEmpty(m_pcaForm.URL2))
-					SelectedEntry.Strings.Remove(Config.PCAURLField);
-				else
-					SelectedEntry.Strings.Set(Config.PCAURLField, new ProtectedString(false, m_pcaForm.URL2));
-				SelectedEntry.Touch(true);
+				SelectedEntry.CustomDataSet(Config.PCASequence, m_pcaForm.Sequence);
+				SelectedEntry.CustomDataSet(Config.PCAURLField, m_pcaForm.PCAURL);
+				SelectedEntry.CustomDataSet(Config.ProfileLastUsedProfile, m_pcaForm.Profile);
+				SelectedEntry.Touch(true, false);
 				Tools.RefreshEntriesList(true);
 			}
 			m_pcaForm.CleanupEx();
@@ -330,19 +331,17 @@ namespace PasswordChangeAssistant
 		private void ShowPCAFormFromEntry(object sender, EventArgs e)
 		{
 			m_pcaForm = new PCADialog();
-			m_pweForm.UpdateEntryStrings(true, true, true);
-			PCAInitData pcadata = new PCAInitData(m_pweForm.EntryRef);
+			PCAInitData pcadata = new PCAInitData(m_pweForm);
 			ExpiryControlGroup ecg = (ExpiryControlGroup)Tools.GetField("m_cgExpiry", m_pweForm);
-			pcadata.Strings = m_pweForm.EntryStrings;
 			if (ecg != null)
 			{
 				pcadata.Expires = ecg.Checked;
 				pcadata.Expiry = ecg.Value;
 				pcadata.SetExpiry = (pcadata.Expires != m_pweForm.EntryRef.Expires) || (pcadata.Expiry != m_pweForm.EntryRef.ExpiryTime);
 			}
-			pcadata.PCAURL = pcadata.Strings.ReadSafe(Config.PCAURLField);
 			DerefStrings(pcadata, m_pweForm.EntryRef);
 			m_pcaForm.Init(pcadata, ProfilesOpening);
+			m_pweForm.UpdateEntryStrings(true, true);
 			if (m_pcaForm.ShowDialog(m_pweForm) == DialogResult.OK)
 			{
 				m_pweForm.EntryStrings.Set(PwDefs.PasswordField, m_pcaForm.NewPassword);
@@ -351,15 +350,10 @@ namespace PasswordChangeAssistant
 					ecg.Checked = m_pcaForm.EntryExpiry.Checked;
 					if (ecg.Checked) ecg.Value = m_pcaForm.EntryExpiry.Value.ToUniversalTime();
 				}
-				if (string.IsNullOrEmpty(m_pcaForm.Sequence))
-					m_pweForm.EntryStrings.Remove(Config.PCASequence);
-				else
-					m_pweForm.EntryStrings.Set(Config.PCASequence, new ProtectedString(false, m_pcaForm.Sequence));
-				if (string.IsNullOrEmpty(m_pcaForm.URL2))
-					m_pweForm.EntryStrings.Remove(Config.PCAURLField);
-				else
-					m_pweForm.EntryStrings.Set(Config.PCAURLField, new ProtectedString(false, m_pcaForm.URL2));
-				m_pweForm.UpdateEntryStrings(false, true, true);
+				m_pweForm.UpdateEntryStrings(false, true);
+				m_pweForm.CustomDataSet(Config.PCASequence, m_pcaForm.Sequence);
+				m_pweForm.CustomDataSet(Config.PCAURLField, m_pcaForm.PCAURL);
+				m_pweForm.CustomDataSet(Config.ProfileLastUsedProfile, m_pcaForm.Profile);
 			}
 			m_pcaForm.CleanupEx();
 			m_pcaForm = null;
@@ -539,7 +533,7 @@ namespace PasswordChangeAssistant
 
 		internal static string GetPCASequence(PwEntry e, string sDefault)
 		{
-			string result = e.Strings.ReadSafe(Config.PCASequence);
+			string result = e.CustomDataGetSafe(Config.PCASequence);
 			if (string.IsNullOrEmpty(result)) result = sDefault;
 			return result;
 		}
@@ -735,15 +729,13 @@ namespace PasswordChangeAssistant
 			if ((m_pweForm == null) || string.IsNullOrEmpty(e.ClickedItem.Text)) return;
 			List<PwProfile> profiles = PwGeneratorUtil.GetAllProfiles(false);
 			string prof = e.ClickedItem.Text.Replace("&", "");
-			m_pweForm.UpdateEntryStrings(true, true);
 			PwProfile profile = profiles.Find(x => x.Name == prof);
 			if (profile != null)
-				m_pweForm.EntryStrings.Set(Config.ProfileLastUsedProfile, new ProtectedString(false, prof));
+				m_pweForm.CustomDataSet(Config.ProfileLastUsedProfile, prof);
 			else if (prof == "(" + KPRes.AutoGeneratedPasswordSettings + ")")
-				m_pweForm.EntryStrings.Set(Config.ProfileLastUsedProfile, new ProtectedString(false, Config.ProfileAutoGenerated));
+				m_pweForm.CustomDataSet(Config.ProfileLastUsedProfile, Config.ProfileAutoGenerated);
 			else
-				m_pweForm.EntryStrings.Remove(Config.ProfileLastUsedProfile);
-			m_pweForm.UpdateEntryStrings(false, true);
+				m_pweForm.CustomDataSet(Config.ProfileLastUsedProfile, string.Empty);
 		}
 
 		private void ProfilesOpening(object sender, System.ComponentModel.CancelEventArgs e)
@@ -752,14 +744,14 @@ namespace PasswordChangeAssistant
 			string pcaFormProfile = m_pcaForm == null ? string.Empty : m_pcaForm.Profile;
 			if (m_pweForm != null)
 			{
-				lastProfile = m_pweForm.EntryStrings.ReadSafeEx(Config.ProfileLastUsedProfile);
+				lastProfile = m_pweForm.CustomDataGetSafe(Config.ProfileLastUsedProfile);
 				PluginDebug.AddInfo("Profiles opened in entry form", 0,
 					"Last used profile:" + lastProfile);
 			}
 			else
 			{
 				PwEntry entry = m_host.MainWindow.GetSelectedEntry(true);
-				if (entry != null) lastProfile = entry.Strings.ReadSafeEx(Config.ProfileLastUsedProfile);
+				if (entry != null) lastProfile = entry.CustomDataGetSafe(Config.ProfileLastUsedProfile);
 				PluginDebug.AddInfo("Profiles opened in Entry form", 0,
 					"Selected profile: " + m_pcaForm.Profile,
 					"Last used profile:" + lastProfile);
@@ -838,6 +830,7 @@ namespace PasswordChangeAssistant
 		public override void Terminate()
 		{
 			if (m_host == null) return;
+			m_host.MainWindow.FileOpened -= OnFileOpened;
 			PluginTranslate.TranslationChanged -= PluginTranslate_TranslationChanged;
 			GlobalWindowManager.WindowAdded -= OnWindowAdded;
 			m_host.MainWindow.DocumentManager.ActiveDocumentSelected -= (o, e) => LoadDBProfiles();

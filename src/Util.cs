@@ -1,29 +1,23 @@
 ﻿using KeePassLib;
 using KeePassLib.Collections;
 using KeePassLib.Security;
+using PluginTools;
 using PluginTranslation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 namespace PasswordChangeAssistant
 {
 	public class PCAInitData
 	{
 		private PwEntry m_pe = null;
-		public ProtectedStringDictionary Strings;
-		private string m_Title = string.Empty;
-		public string Title
-		{
-			get { return m_pe != null ? m_pe.Strings.ReadSafe(PwDefs.TitleField) : m_Title; }
-		}
-		private string m_User = string.Empty;
-		public string User
-		{
-			get { return m_pe != null ? m_pe.Strings.ReadSafe(PwDefs.UserNameField) : m_User; }
-		}
+		public PwEntry Entry { get { return m_pe; } }
+		public string Title;
+		public string User;
 		public ProtectedString OldPassword;
 		public string MainURL;
 		public string PCAURL;
@@ -31,20 +25,34 @@ namespace PasswordChangeAssistant
 		public bool Expires;
 		public bool SetExpiry;
 		public string PCASequence;
+
 		public PCAInitData(PwEntry pe)
+		{
+			PCAInitData_Intern(pe);
+		}
+
+		public PCAInitData(KeePass.Forms.PwEntryForm pef)
+		{
+			if (pef == null) return;
+			PCAInitData_Intern(pef.EntryRef);
+			if (pef.CustomDataExists(Config.PCASequence))
+				PCASequence = pef.CustomDataGetSafe(Config.PCASequence);
+			PCAURL = pef.CustomDataGetSafe(Config.PCAURLField);
+		}
+
+		private void PCAInitData_Intern(PwEntry pe)
 		{
 			if (pe == null) return;
 			m_pe = pe;
-			m_Title = pe.Strings.ReadSafe(PwDefs.TitleField);
-			m_User = pe.Strings.ReadSafe(PwDefs.UserNameField);
+			Title = pe.Strings.ReadSafe(PwDefs.TitleField);
+			User = pe.Strings.ReadSafe(PwDefs.UserNameField);
 			Expires = pe.Expires;
 			Expiry = pe.ExpiryTime;
 			OldPassword = pe.Strings.GetSafe(PwDefs.PasswordField);
 			PCASequence = PasswordChangeAssistantExt.GetPCASequence(pe, Config.DefaultPCASequences[PluginTranslate.DefaultSequence01]);
 			SetExpiry = false;
 			MainURL = pe.Strings.ReadSafe(PwDefs.UrlField);
-			PCAURL = pe.Strings.ReadSafe(Config.PCAURLField);
-			Strings = pe.Strings;
+			PCAURL = pe.CustomDataGetSafe(Config.PCAURLField);
 		}
 
 		public void OpenURL()
@@ -53,16 +61,94 @@ namespace PasswordChangeAssistant
 			if (string.IsNullOrEmpty(URL)) URL = MainURL;
 			if (string.IsNullOrEmpty(URL)) return;
 
-			KeePass.Util.WinUtil.OpenUrl(URL, PasswordChangeAssistantExt.SelectedEntry, false);
+			KeePass.Util.WinUtil.OpenUrl(URL, m_pe, false);
+		}
+	}
+
+	internal class DataMigration
+	{
+		[Flags]
+		private enum Migrations
+		{ //Update CheckAndMigrate(PwDatabase db) if changes are done here
+			None = 0,
+			Entry2CustomData = 1,
+		}
+
+		public static bool CheckAndMigrate(PwDatabase db)
+		{
+			//Do NOT create a 'ALL' flag as this will be stored as 'ALL' and by that, no additional migrations would be done
+			Migrations m = Migrations.None;
+			foreach (var v in Enum.GetValues(typeof(Migrations))) m |= (Migrations)v;
+			return CheckAndMigrate(db, m);
+		}
+
+		/// <summary>
+		/// Perform all kind of migrations between different KeePassOTP versions
+		/// </summary>
+		/// <param name="db"></param>
+		/// <returns>true if something was migrated, false if nothing was done</returns>
+		private static bool CheckAndMigrate(PwDatabase db, Migrations omFlags)
+		{
+			string sMigration = "PCA.MigrationStatus";
+			bool bMigrated = false;
+
+			Migrations mStatusOld;
+			try { mStatusOld = (Migrations)Enum.Parse(typeof(Migrations), db.CustomData.Get(sMigration), true); }
+			catch { mStatusOld = Migrations.None; }
+			Migrations mStatusNew = mStatusOld;
+
+			if (MigrationRequired(Migrations.Entry2CustomData, omFlags, mStatusOld))
+			{
+				bMigrated |= MigrateEntry2CustomData(db) > 0;
+				mStatusNew |= Migrations.Entry2CustomData;
+			}
+
+			if ((mStatusNew != mStatusOld) || bMigrated)
+			{
+				db.CustomData.Set(sMigration, mStatusNew.ToString());
+				db.SettingsChanged = DateTime.UtcNow;
+				db.Modified = true;
+				KeePass.Program.MainForm.UpdateUI(false, null, false, null, false, null, KeePass.Program.MainForm.ActiveDatabase == db);
+			}
+			return bMigrated;
+		}
+
+		private static int MigrateEntry2CustomData(PwDatabase db)
+		{
+			int i = 0;
+			var lEntries = db.RootGroup.GetEntries(true);
+			foreach (PwEntry pe in lEntries)
+			{
+				i += MoveField(pe, "PCAURL", Config.PCAURLField);
+				i += MoveField(pe, "PCASequence", Config.PCASequence);
+				i += MoveField(pe, Config.ProfileLastUsedProfile, Config.ProfileLastUsedProfile);
+			}
+			return i;
+		}
+
+		private static int MoveField(PwEntry pe, string sFrom, string sTo)
+		{
+			string s = pe.Strings.ReadSafe(sFrom);
+			if (string.IsNullOrEmpty(s)) return 0;
+			pe.Strings.Remove(sFrom);
+			pe.CustomDataSet(sTo, s);
+			return 1;
+		}
+
+		private static bool MigrationRequired(Migrations mMigrate, Migrations mFlags, Migrations status)
+		{
+			if ((mMigrate & mFlags) != mMigrate) return false; //not requested
+			if ((mMigrate & status) == mMigrate) return false; //already done
+			return true;
 		}
 	}
 
 	public static class Config
 	{
-		public const string PCAURLField = "PCAURL";
+		public const string PCAURLField = "PCA.URL";
 		public const string PCAPluginField = "PCAPluginField";
 		public const string PCAPluginFieldRef = "{S:" + PCAPluginField + "}";
-		public const string PCASequence = "PCASequence";
+		public const string PCASequence = "PCA.Sequence";
 		public const string PlaceholderOldPW = "{PCA_OldPW}";
 		public const string PlaceholderNewPW = "{PCA_NewPW}";
 		public static Dictionary<string, string> DefaultPCASequences = new Dictionary<string, string>();
