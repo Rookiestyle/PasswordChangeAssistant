@@ -165,6 +165,13 @@ namespace PasswordChangeAssistant
 			set { KeePass.Program.Config.CustomConfig.SetBool(_OpenUrlForPwChange, value); }
 		}
 
+		public static void OpenUrlForPwChange_Init()
+		{
+			if (KeePass.Program.Config.CustomConfig.GetBool(_OpenUrlForPwChange + "_Init", false)) return;
+			KeePass.Program.Config.CustomConfig.SetBool(_OpenUrlForPwChange + "_Init", true);
+			OpenUrlForPwChange = Tools.AskYesNo(PluginTranslate.OpenUrlForPwChangeExplanation, PluginTranslate.PluginName) == DialogResult.Yes;
+		}
+
 		internal static Image ScaleImage(Image img)
 		{
 			return ScaleImage(img, 16, 16);

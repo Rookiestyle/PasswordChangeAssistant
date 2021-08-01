@@ -9,11 +9,12 @@ namespace PluginTools
 	{
 		public static bool CustomDataExists(this PwEntry pe, string sKey)
 		{
-			return pe.CustomData.Exists(sKey);
+			return pe != null && pe.CustomData.Exists(sKey);
 		}
 
 		public static void CustomDataSet(this PwEntry pe, string sKey, string sValue)
 		{
+			if (pe == null) return;
 			if (string.IsNullOrEmpty(sValue))
 				pe.CustomData.Remove(sKey);
 			else
@@ -22,8 +23,15 @@ namespace PluginTools
 
 		public static string CustomDataGetSafe(this PwEntry pe, string sKey)
 		{
+			if (pe == null) return string.Empty;
 			if (!pe.CustomDataExists(sKey)) return string.Empty;
 			return pe.CustomData.Get(sKey);
+		}
+
+		public static bool CustomDataRemove(this PwEntry pe, string sKey)
+		{
+			if (pe == null) return false;
+			return pe.CustomData.Remove(sKey);
 		}
 
 		public static bool CustomDataExists(this PwEntryForm pef, string sKey)
@@ -35,16 +43,18 @@ namespace PluginTools
 
 		public static void CustomDataSet(this PwEntryForm pef, string sKey, string sValue)
 		{
+			if (string.IsNullOrEmpty(sValue))
+			{
+				CustomDataRemove(pef, sKey);
+				return;
+			}
 			var dCustomData = (StringDictionaryEx)Tools.GetField("m_sdCustomData", pef);
 			var lvCustomData = (ListView)Tools.GetControl("m_lvCustomData", pef);
 
 			if (dCustomData == null || lvCustomData == null) return;
 
 			//Update StringDictionary
-			if (string.IsNullOrEmpty(sValue))
-				dCustomData.Remove(sKey);
-			else
-				dCustomData.Set(sKey, sValue);
+			dCustomData.Set(sKey, sValue);
 
 			//Update ListView
 			for (int i = 0; i < lvCustomData.Items.Count; i++)
@@ -52,11 +62,7 @@ namespace PluginTools
 				if (lvCustomData.Items[i].SubItems[0].Text != sKey) continue;
 
 				//Entry already exists
-				//Remove if new value is empty, update otherwise
-				if (string.IsNullOrEmpty(sValue))
-					lvCustomData.Items.RemoveAt(i);
-				else
-					lvCustomData.Items[i].SubItems[1].Text = sValue;
+				lvCustomData.Items[i].SubItems[1].Text = sValue;
 
 				//We're done
 				return;
@@ -74,6 +80,27 @@ namespace PluginTools
 
 			if (dCustomData == null || !dCustomData.Exists(sKey)) return string.Empty;
 			return dCustomData.Get(sKey);
+		}
+
+		public static bool CustomDataRemove(this PwEntryForm pef, string sKey)
+		{
+			var dCustomData = (StringDictionaryEx)Tools.GetField("m_sdCustomData", pef);
+			var lvCustomData = (ListView)Tools.GetControl("m_lvCustomData", pef);
+
+			if (dCustomData == null || lvCustomData == null) return false;
+
+			//Update StringDictionary
+			bool bRemoved = dCustomData.Remove(sKey);
+
+			//Update ListView
+			for (int i = 0; i < lvCustomData.Items.Count; i++)
+			{
+				if (lvCustomData.Items[i].SubItems[0].Text != sKey) continue;
+
+				lvCustomData.Items.RemoveAt(i);
+				break;
+			}
+			return bRemoved;
 		}
 	}
 }

@@ -52,6 +52,7 @@ namespace PasswordChangeAssistant
 
 		private Action<object, CancelEventArgs> m_OnProfilesOpening = null;
 		private PCAInitData m_pcadata = null;
+		public PCAInitData PCAData { get { return m_pcadata; } }
 		#endregion
 
 		public bool CanCloseWithoutDataLoss { get { return true; } }
@@ -85,8 +86,8 @@ namespace PasswordChangeAssistant
 			//Create input control group for new password
 			m_icgNewPassword.Attach(tbPasswordNew, cbToggleNewPassword, m_lblPasswordRepeat, tbPasswordNewRepeat, m_lblQuality,
 				pbNewPasswordQuality, lNewPasswordQualityInfo, toolTip1, this, cbToggleNewPassword.Checked, false);
-			m_icgNewPassword.ContextDatabase = Program.MainForm.DocumentManager.SafeFindContainerOf(PasswordChangeAssistantExt.SelectedEntry);
-			m_icgNewPassword.ContextEntry = PasswordChangeAssistantExt.SelectedEntry;
+			m_icgNewPassword.ContextDatabase = Program.MainForm.DocumentManager.SafeFindContainerOf(m_pcadata.Entry);
+			m_icgNewPassword.ContextEntry = m_pcadata.Entry;
 
 			bool bForceHide = !AppPolicy.Current.UnhidePasswords;
 			AceColumn colPw = Program.Config.MainWindow.FindColumn(AceColumnType.Password);
@@ -331,7 +332,7 @@ namespace PasswordChangeAssistant
 					string strApp = (string)it.GetType().GetProperty("FilePath").GetValue(it, null);
 
 					if (iFilePathType == 0) //OwFilePathType.Executable
-						WinUtil.OpenUrlWithApp(sURL, PasswordChangeAssistantExt.SelectedEntry, strApp);
+						WinUtil.OpenUrlWithApp(sURL, m_pcadata.Entry, strApp);
 					else if (iFilePathType == 1) //OwFilePathType.ShellExpand
 					{
 						string str = string.Empty;
@@ -339,7 +340,7 @@ namespace PasswordChangeAssistant
 							str = strApp.Replace(PlhTargetUri, (string)m_miEncodeForCommandLine.Invoke(null, new object[] { sURL }));
 						else
 							str = strApp.Replace(PlhTargetUri, sURL);
-						WinUtil.OpenUrl(str, PasswordChangeAssistantExt.SelectedEntry, false);
+						WinUtil.OpenUrl(str, m_pcadata.Entry, false);
 					}
 				}
 				else
@@ -353,7 +354,7 @@ namespace PasswordChangeAssistant
 		private void OnCopyUrl(object sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(sURL)) return;
-			if (ClipboardUtil.CopyAndMinimize(sURL, true, this, PasswordChangeAssistantExt.SelectedEntry, Program.MainForm.ActiveDatabase))
+			if (ClipboardUtil.CopyAndMinimize(sURL, true, this, m_pcadata.Entry, Program.MainForm.ActiveDatabase))
 				Program.MainForm.StartClipboardCountdown();
 		}
 
@@ -449,7 +450,7 @@ namespace PasswordChangeAssistant
 		{
 			if (m_miCompile == null) return url;
 			if (url.IndexOf('{') < 0) return url;
-			return (string)m_miCompile.Invoke(null, new object[] { url.Substring(url.IndexOf('{')), PasswordChangeAssistantExt.SelectedEntry, true, string.Empty, null });
+			return (string)m_miCompile.Invoke(null, new object[] { url.Substring(url.IndexOf('{')), m_pcadata.Entry, true, string.Empty, null });
 		}
 		#endregion
 
@@ -563,17 +564,17 @@ namespace PasswordChangeAssistant
 		private void passwordTypeClick(object sender, EventArgs e)
 		{
 			if ((sender as Button).Name.Contains("Old"))
-				PasswordChangeAssistantExt.PasswordType(m_pcadata.OldPassword);
+				PasswordChangeAssistantExt.PasswordType(m_pcadata.Entry, m_pcadata.OldPassword);
 			else
-				PasswordChangeAssistantExt.PasswordType(tbPasswordNew.TextEx);
+				PasswordChangeAssistantExt.PasswordType(m_pcadata.Entry, tbPasswordNew.TextEx);
 		}
 
 		private void passwordCopyClick(object sender, EventArgs e)
 		{
 			if ((sender as Button).Name.Contains("Old"))
-				PasswordChangeAssistantExt.PasswordCopy(m_pcadata.OldPassword);
+				PasswordChangeAssistantExt.PasswordCopy(m_pcadata.Entry, m_pcadata.OldPassword);
 			else
-				PasswordChangeAssistantExt.PasswordCopy(tbPasswordNew.TextEx);
+				PasswordChangeAssistantExt.PasswordCopy(m_pcadata.Entry, tbPasswordNew.TextEx);
 		}
 
 		private void toggleOldPassword(object sender, EventArgs e)
@@ -593,7 +594,7 @@ namespace PasswordChangeAssistant
 
 		private void bSequence_Click(object sender, EventArgs e)
 		{
-			PasswordChangeAssistantExt.SequenceType(tbPasswordNew.TextEx, rtbSequence.Text);
+			PasswordChangeAssistantExt.SequenceType(m_pcadata.Entry, tbPasswordNew.TextEx, rtbSequence.Text);
 		}
 
 		private void bSequenceEdit_Click(object sender, EventArgs e)
@@ -601,7 +602,7 @@ namespace PasswordChangeAssistant
 			EditAutoTypeItemForm dlg = new EditAutoTypeItemForm();
 			AutoTypeConfig atc = new AutoTypeConfig();
 			if (string.IsNullOrEmpty(rtbSequence.Text))
-				atc.DefaultSequence = PasswordChangeAssistantExt.GetPCASequence(PasswordChangeAssistantExt.SelectedEntry, PluginTranslate.DefaultSequence01);
+				atc.DefaultSequence = PasswordChangeAssistantExt.GetPCASequence(m_pcadata.Entry, PluginTranslate.DefaultSequence01);
 			else atc.DefaultSequence = rtbSequence.Text;
 			dlg.InitEx(atc, -1, true, rtbSequence.Text, m_pcadata.Entry.Strings);
 			dlg.Text = KPRes.ConfigureKeystrokeSeq;

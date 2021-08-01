@@ -61,6 +61,10 @@ Overwrite?";
 		public static readonly string PWFormShownCaption = @"Password Change Assistant form is shown";
 		public static readonly string OpenUrlForPwChange = @"Open password change site in default browser";
 		public static readonly string OpenUrlForPwChangeShift = @"Hold down [Shift] to invert this behaviour.";
+		public static readonly string OpenUrlForPwChangeExplanation = @"Password Change Assistant can automatically open the website to change this entry's password.
+
+Do you want this to be active?
+You can change this in the plugin's options anytime.";
 		#endregion
 
 		#region NO changes in this area
