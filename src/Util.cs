@@ -161,7 +161,7 @@ namespace PasswordChangeAssistant
 
 		public static bool OpenUrlForPwChange
 		{
-			get { return KeePass.Program.Config.CustomConfig.GetBool(_OpenUrlForPwChange, true); }
+			get { return KeePass.Program.Config.CustomConfig.GetBool(_OpenUrlForPwChange, false); }
 			set { KeePass.Program.Config.CustomConfig.SetBool(_OpenUrlForPwChange, value); }
 		}
 
