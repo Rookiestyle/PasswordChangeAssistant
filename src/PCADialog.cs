@@ -165,6 +165,7 @@ namespace PasswordChangeAssistant
 			m_peCtxEntry = new PwEntry(true, true);
 			foreach (var kvp in m_pcadata.Entry.CustomData)
 				m_peCtxEntry.CustomData.Set(kvp.Key, kvp.Value);
+			m_peCtxEntry.Strings = m_pcadata.Entry.Strings;
 
 			InitSequences();
 			rtbSequence.Text = m_pcadata.PCASequence;
