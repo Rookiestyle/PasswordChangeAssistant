@@ -46,6 +46,21 @@ Here you can move existing profiles in various directions
 
 ![Profile sync](images/PasswordChangeAssistant%20-%20Options.png)
 
+## Password profile: At least 1 per set  
+There are quite some websites that force you to follow password rules like this:  
+* Minimum 8 characters
+* Maximum 30 characters
+* At least 1 upper case letter
+* At least 1 lower case letter
+* At least 1 special characters
+* At least 1 digit  
+
+While the length requirement is easy to achieve with KeePass' built-in password generator (just go for 30 characters), the *at least 1* is not achievable in an easy way.  
+PasswordChangeAssistant now provides a custom password generator that allows creation of passwords with at least 1 character of every selected set.  
+**IF** required by the website, feel free to use it.
+
+![Password Generator](images/PasswordChangeAssistant%20-%20Password%20Generator.png)
+
 # Translations
 PasswordChangeAssistant is provided with English language built-in and allow usage of translation files.
 These translation files need to be placed in a folder called *Translations* inside in your plugin folder.
