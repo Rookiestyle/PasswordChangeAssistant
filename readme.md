@@ -13,7 +13,8 @@ PasswordChangeAssistant is a KeePass plugin that offers multiple assistance func
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Translations](#translations)
-- [Download and Requirements](#download-and-requirements)
+- [Download & updates](#download--updates)
+- [Requirements](#requirements)
 
 # Configuration
 PasswordChangeAssistant is designed to *simply work* and does not require any kind of configuration for changing passwords.
@@ -73,13 +74,15 @@ Example: `PasswordChangeAssistant.de.language.xml`
 The language identifier in the filename must match the language identifier inside the KeePass language that you can select using *View -> Change language...*\
 This identifier is shown there as well, if you have [EarlyUpdateCheck](https://github.com/rookiestyle/earlyupdatecheck) installed.
 
-# Download and Requirements
-## Download
+# Download & updates
 Please follow these links to download the plugin file itself.
 - [Download newest release](https://github.com/rookiestyle/passwordchangeassistant/releases/latest/download/PasswordChangeAssistant.plgx)
 - [Download history](https://github.com/rookiestyle/passwordchangeassistant/releases)
 
 If you're interested in any of the available translations in addition, please download them from the [Translations](Translations) folder.
-## Requirements
+
+In addition to the manual way of downloading the plugin, you can use [EarlyUpdateCheck](https://github.com/rookiestyle/earlyupdatecheck/) to update both the plugin and its translations automatically.  
+See the [one click plugin update wiki](https://github.com/Rookiestyle/EarlyUpdateCheck/wiki/One-click-plugin-update) for more details.
+# Requirements
 * KeePass: 2.40
 * .NET framework: 3.5
