@@ -33,34 +33,122 @@ namespace PluginTranslation
 		private static string LanguageIso6391 = string.Empty;
 		#region Definitions of translated texts go here
 		public const string PluginName = "Password Change Assistant";
+		/// <summary>
+		/// Old password:
+		/// </summary>
 		public static readonly string OldPW = @"Old password:";
+		/// <summary>
+		/// New password:
+		/// </summary>
 		public static readonly string NewPW = @"New password:";
+		/// <summary>
+		/// Old password: Copy
+		/// </summary>
 		public static readonly string OldPWCopy = @"Old password: Copy";
+		/// <summary>
+		/// Old password: Auto-Type
+		/// </summary>
 		public static readonly string OldPWType = @"Old password: Auto-Type";
+		/// <summary>
+		/// New password: Copy
+		/// </summary>
 		public static readonly string NewPWCopy = @"New password: Copy";
+		/// <summary>
+		/// New password: Auto-Type
+		/// </summary>
 		public static readonly string NewPWType = @"New password: Auto-Type";
+		/// <summary>
+		/// {0}: {1} ({2})
+		/// </summary>
 		public static readonly string EntryInfo = @"{0}: {1} ({2})";
+		/// <summary>
+		/// {0}: {1}
+		/// </summary>
 		public static readonly string EntryInfoNoUsername = @"{0}: {1}";
+		/// <summary>
+		/// Change password
+		/// </summary>
 		public static readonly string ButtonChangePW = @"Change password";
+		/// <summary>
+		/// Password Change Sequence
+		/// </summary>
 		public static readonly string PCASequence = @"Password Change Sequence";
+		/// <summary>
+		/// Old Password - New Password - New Password
+		/// </summary>
 		public static readonly string DefaultSequence01 = @"Old Password - New Password - New Password";
+		/// <summary>
+		/// Old Password - New Page - New Password - New Password
+		/// </summary>
 		public static readonly string DefaultSequence02 = @"Old Password - New Page - New Password - New Password";
+		/// <summary>
+		/// New Password - New Password
+		/// </summary>
 		public static readonly string DefaultSequence03 = @"New Password - New Password";
+		/// <summary>
+		/// Entry-specific sequence
+		/// </summary>
 		public static readonly string EntrySpecificSequence = @"Entry-specific sequence";
+		/// <summary>
+		/// Change password
+		/// </summary>
 		public static readonly string ChangePassword = @"Change password";
+		/// <summary>
+		/// No database opened / database locked
+		/// </summary>
 		public static readonly string NoDB = @"No database opened / database locked";
-		public static readonly string ModeCopy = "Copy profiles instead of moving profiles";
+		/// <summary>
+		/// Copy profiles instead of moving profiles
+		/// </summary>
+		public static readonly string ModeCopy = @"Copy profiles instead of moving profiles";
+		/// <summary>
+		/// {0} is already defined
+		/// Overwrite?
+		/// </summary>
 		public static readonly string OptionsOverwrite = @"{0} is already defined
 Overwrite?";
+		/// <summary>
+		/// Active database: {0}
+		/// </summary>
 		public static readonly string OptionsActiveDB = @"Active database: {0}";
+		/// <summary>
+		/// Password Profile Sync
+		/// </summary>
 		public static readonly string Options = @"Password Profile Sync";
+		/// <summary>
+		/// KeePass config
+		/// </summary>
 		public static readonly string OptionsGlobal = @"KeePass config";
+		/// <summary>
+		/// Direct link to 'Change password' site
+		/// </summary>
 		public static readonly string URL2Hint = @"Direct link to 'Change password' site";
+		/// <summary>
+		/// Save db-specific
+		/// </summary>
 		public static readonly string SaveProfileInDB = @"Save db-specific";
+		/// <summary>
+		/// Password Profile Sync
+		/// </summary>
 		public static readonly string OptionsPWSyncFormCaption = @"Password Profile Sync";
+		/// <summary>
+		/// Password Change Assistant form is shown
+		/// </summary>
 		public static readonly string PWFormShownCaption = @"Password Change Assistant form is shown";
+		/// <summary>
+		/// Open password change site in default browser
+		/// </summary>
 		public static readonly string OpenUrlForPwChange = @"Open password change site in default browser";
+		/// <summary>
+		/// Hold down [Shift] to invert this behaviour.
+		/// </summary>
 		public static readonly string OpenUrlForPwChangeShift = @"Hold down [Shift] to invert this behaviour.";
+		/// <summary>
+		/// Password Change Assistant can automatically open the website to change this entry's password.
+		/// 
+		/// Do you want this to be active?
+		/// You can change this in the plugin's options anytime.
+		/// </summary>
 		public static readonly string OpenUrlForPwChangeExplanation = @"Password Change Assistant can automatically open the website to change this entry's password.
 
 Do you want this to be active?
