@@ -159,6 +159,8 @@ namespace PasswordChangeAssistant
 		public const string ProfileConfig = "PPS.";
 		private const string _OpenUrlForPwChange = "PPS.OpenUrlForPwChange";
 
+		public static Version KP_Version_2_50 = new Version(2, 50);
+
 		public static bool OpenUrlForPwChange
 		{
 			get { return KeePass.Program.Config.CustomConfig.GetBool(_OpenUrlForPwChange, false); }

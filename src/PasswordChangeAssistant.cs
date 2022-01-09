@@ -234,8 +234,13 @@ namespace PasswordChangeAssistant
 				m_pweForm = o as PwEntryForm;
 			};
 			m_pweForm = pef;
-			pef.PasswordGeneratorContextMenu.Opening += ProfilesOpening;
-			pef.PasswordGeneratorContextMenu.ItemClicked += ProfileClicked;
+			if (Tools.KeePassVersion < Config.KP_Version_2_50)
+			{
+				pef.PasswordGeneratorContextMenu.Opening += ProfilesOpening;
+				pef.PasswordGeneratorContextMenu.ItemClicked += ProfileClicked;
+			}
+			else pef.Shown += PreparePwGenButton;
+			
 			pef.FormClosed += OnFormClosed;
 			LoadDBProfiles();
 
@@ -290,7 +295,79 @@ namespace PasswordChangeAssistant
 			m_btnPCA.BringToFront();
 		}
 
-		private void cmsPCAOpening(object sender, EventArgs e)
+        private void PreparePwGenButton(object sender, EventArgs e)
+        {
+			(sender as Form).Shown -= PreparePwGenButton;
+			List<string> lMsg = new List<string>();
+			Button bGenPw = Tools.GetControl("m_btnGenPw", sender as Form) as Button;
+			if (bGenPw == null)
+			{
+				PluginDebug.AddError("Hooking m_btnGenPw", 0, "Could not locate m_btnGenPw");
+				return;
+			}
+			var oldEventHanderClick = bGenPw.GetEventHandlers("Click");
+			if (oldEventHanderClick.Count != 1)
+            {
+				PluginDebug.AddError("Hooking m_btnGenPw", 0, "m_btnGenPw has more than one click handler");
+				return;
+			}
+			
+			bGenPw.RemoveEventHandlers("Click", oldEventHanderClick);
+			bGenPw.Click += OnPwGenClick;
+			bGenPw.Tag = oldEventHanderClick[0].Target;
+			PluginDebug.AddSuccess("Hooking m_btnGenPw", 0);
+		}
+
+		//Code taken from PwGeneratorMenu.OnHostBtnClick
+		private void OnPwGenClick(object sender, EventArgs e)
+		{
+			Button bGenPw = sender as Button;
+			if (bGenPw == null)
+			{
+				PluginDebug.AddError("Hooking password profile display", 0, "Invalid source object", sender == null ? "null" : sender.GetType().ToString());
+				return;
+			}
+
+			object myPwGeneratorMenu = bGenPw.Tag;
+			if (myPwGeneratorMenu == null)
+			{
+				PluginDebug.AddError("Hooking password profile display", 0, "No PwGeneratorMenu found");
+				return;
+			}
+
+			var mConstructContextMenu = myPwGeneratorMenu.GetType().GetMethod("ConstructContextMenu", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			if (mConstructContextMenu == null)
+			{
+				PluginDebug.AddError("Hooking password profile display", 0, "Method ConstructContextMenu not found");
+				return;
+			}
+			mConstructContextMenu.Invoke(myPwGeneratorMenu, null);
+
+			ContextMenuStrip ctx = Tools.GetField("m_ctx", myPwGeneratorMenu) as ContextMenuStrip;
+			if (ctx == null)
+			{
+				PluginDebug.AddError("Hooking password profile display", 0, "Context menu not found");
+				return;
+			}
+
+			ctx.Opening += ProfilesOpening;
+			ctx.ItemClicked += ProfileClicked;
+			PluginDebug.AddSuccess("Hooking password profile display", 0);
+
+			if (ctx is CustomContextMenuStripEx) (ctx as CustomContextMenuStripEx).ShowEx(bGenPw);
+			else
+            {
+				int dx = 0;
+				if (bGenPw.RightToLeft == RightToLeft.Yes)
+				{
+					ctx.RightToLeft = RightToLeft.Yes;
+					dx = bGenPw.Width;
+				}
+				ctx.Show(bGenPw, dx, bGenPw.Height);
+			}
+		}
+
+        private void cmsPCAOpening(object sender, EventArgs e)
 		{
 			ContextMenuStrip cmsPCA = sender as ContextMenuStrip;
 			if (cmsPCA == null) return;
