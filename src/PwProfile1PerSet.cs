@@ -11,7 +11,7 @@ namespace PasswordChangeAssistant
 {
 	internal class PwProfile1PerSet : CustomPwGenerator
 	{
-		public const string MyName = "At least 1 per set *";
+		private static string MyName = PluginTranslation.PluginTranslate.ProfileAtLeast1PerSet;
 		public override string Name { get { return MyName; } }
 		public override bool SupportsOptions { get { return true; } }
 
@@ -113,7 +113,7 @@ namespace PasswordChangeAssistant
 					s = s.Replace("&&", "\n");
 					s = s.Replace("&", string.Empty);
 					s = s.Replace("\n", "&");
-					Tools.ShowInfo(string.Format("Please use '{0}' to define password details", s));
+					Tools.ShowInfo(string.Format(PluginTranslation.PluginTranslate.ProfileUsageHint, s));
 				}
 			}
 			return base.GetOptions(strCurrentOptions);
@@ -127,7 +127,7 @@ namespace PasswordChangeAssistant
 			if (cmbCustomAlgo == null) return;
 			if (!cmbCustomAlgo.Enabled) return;
 			if (cmbCustomAlgo.SelectedIndex < 0) return;
-			if ((cmbCustomAlgo.Items[cmbCustomAlgo.SelectedIndex] as string) != MyName) return;
+			if ((cmbCustomAlgo.Items[cmbCustomAlgo.SelectedIndex] as string) != PwProfile1PerSet.MyName) return;
 
 			Control cGroup = Tools.GetControl("m_grpCurOpt", f);
 			foreach (Control c in cGroup.Controls)
@@ -152,5 +152,4 @@ namespace PasswordChangeAssistant
 			}
 		}
 	}
-
 }

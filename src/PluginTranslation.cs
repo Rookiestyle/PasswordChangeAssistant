@@ -153,6 +153,14 @@ Overwrite?";
 
 Do you want this to be active?
 You can change this in the plugin's options anytime.";
+		/// <summary>
+		/// Please use the options inside '{0}' to define password details
+		/// </summary>
+		public static readonly string ProfileUsageHint = @"Please use the options inside '{0}' to define password details";
+		/// <summary>
+		/// At least 1 per set *
+		/// </summary>
+		public static readonly string ProfileAtLeast1PerSet = @"At least one per set *";
 		#endregion
 
 		#region NO changes in this area
