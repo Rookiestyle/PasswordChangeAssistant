@@ -136,9 +136,9 @@ Overwrite?";
 		/// </summary>
 		public static readonly string PWFormShownCaption = @"Password Change Assistant form is shown";
 		/// <summary>
-		/// Open password change site in default browser
+		/// Open password change site in browser
 		/// </summary>
-		public static readonly string OpenUrlForPwChange = @"Open password change site in default browser";
+		public static readonly string OpenUrlForPwChange = @"Open password change site in browser";
 		/// <summary>
 		/// Hold down [Shift] to invert this behaviour.
 		/// </summary>

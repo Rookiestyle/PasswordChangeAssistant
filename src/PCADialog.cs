@@ -341,7 +341,7 @@ namespace PasswordChangeAssistant
 							str = strApp.Replace(PlhTargetUri, (string)m_miEncodeForCommandLine.Invoke(null, new object[] { sURL }));
 						else
 							str = strApp.Replace(PlhTargetUri, sURL);
-						WinUtil.OpenUrl(str, m_pcadata.Entry, false);
+						WinUtil.OpenUrl(str, m_pcadata.Entry, true);
 					}
 				}
 				else

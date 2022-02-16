@@ -61,7 +61,7 @@ namespace PasswordChangeAssistant
 			if (string.IsNullOrEmpty(URL)) URL = MainURL;
 			if (string.IsNullOrEmpty(URL)) return;
 
-			KeePass.Util.WinUtil.OpenUrl(URL, m_pe, false);
+			KeePass.Util.WinUtil.OpenUrl(URL, m_pe, true);
 		}
 	}
 
