@@ -25,7 +25,7 @@ namespace PasswordChangeAssistant
 
 			string sPattern = MapCharsets2Pattern(prf);
 			p.Pattern = sPattern;
-			int iLength = p.Pattern.Length;
+			int iLength = GetPatternLength(p.Pattern);
 
 			//Add additionaly specified characters if any
 			//Increase overall length of generated password by 1: 1 per set = at least 1 out of the additinaly specified characters
@@ -43,6 +43,17 @@ namespace PasswordChangeAssistant
 			ProtectedString ps = ProtectedString.Empty;
 			if (PwGenerator.Generate(out ps, p, crsRandomSource.GetRandomBytes(32), null) == PwgError.Success) return ps;
 			return ProtectedString.Empty;
+		}
+
+		private int GetPatternLength(string sPattern)
+		{
+			//Some character classes will be escaped
+			//Those \ must be ignored when calculating character length
+			var sHelp = sPattern.Replace("\\\\", string.Empty);
+			int l = (sPattern.Length - sHelp.Length) / 2;
+			sHelp = sHelp.Replace("\\", string.Empty);
+			l += sHelp.Length;
+			return l;
 		}
 
 		private void FinalizePattern(PwProfile p, string sPattern, string sAdditionalChars, int iLength, out bool bSuccess)
