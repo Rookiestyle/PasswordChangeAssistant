@@ -45,6 +45,7 @@ namespace PasswordChangeAssistant
 			tpPWSync.Text = PluginTranslate.OptionsPWSyncFormCaption;
 			cbOpenUrlForPwChange.Text = PluginTranslate.OpenUrlForPwChange;
 			lOpenUrlForPwChangeShift.Text = PluginTranslate.OpenUrlForPwChangeShift;
+			lAutotypeDelay.Text = PluginTranslate.AutotypeDelay;
 		}
 
 		public void SetHomeDB(PwDatabase db)

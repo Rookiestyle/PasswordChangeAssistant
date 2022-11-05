@@ -161,6 +161,10 @@ You can change this in the plugin's options anytime.";
 		/// At least 1 per set *
 		/// </summary>
 		public static readonly string ProfileAtLeast1PerSet = @"At least one per set *";
+		/// <summary>
+		/// Auto-Type delay (seconds)
+		/// </summary>
+		public static readonly string AutotypeDelay = @"Auto-Type delay (seconds)";
 		#endregion
 
 		#region NO changes in this area

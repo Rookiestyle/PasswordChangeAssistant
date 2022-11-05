@@ -572,14 +572,30 @@ namespace PasswordChangeAssistant
 
 		internal static void PasswordType(PwEntry pe, ProtectedString ps)
 		{
+			var bAddedDelay = AddDelay();
+
 			/* The password string may contain special chars and/or field references
 			 * Easiest way is to set the provided value as new string field
 			 * and have KeePass do the rest
 			*/
 			SetPasswordField(pe, ps);
-			AutoType.PerformIntoPreviousWindow(Program.MainForm, pe,
+			if (bAddedDelay)
+				AutoType.PerformIntoCurrentWindow(pe,
 				Program.MainForm.DocumentManager.SafeFindContainerOf(pe), Config.PCAPluginFieldRef);
+			else
+				AutoType.PerformIntoPreviousWindow(Program.MainForm, pe,
+					Program.MainForm.DocumentManager.SafeFindContainerOf(pe), Config.PCAPluginFieldRef);
 			SetPasswordField(pe, null);
+		}
+
+		private static bool AddDelay()
+		{
+			//https://github.com/Rookiestyle/PasswordChangeAssistant/issues/16
+			var iDelay = Config.AutotypeDelay;
+			if (iDelay < 1) return false;
+			PluginDebug.AddInfo("Adding Auto-Type delay of " + iDelay.ToString() + " seconds");
+			System.Threading.Thread.Sleep(iDelay * 1000);
+			return true;
 		}
 
 		internal static void PasswordCopy(PwEntry pe, ProtectedString ps)
@@ -621,6 +637,7 @@ namespace PasswordChangeAssistant
 
 		internal static void SequenceType(PwEntry pe, ProtectedString ps, string sequence)
 		{
+			AddDelay();
 			/* The password string may contain special chars and/or field references
 				* Easiest way is to set the provided value as new string field
 				* and have KeePass do the rest
@@ -720,6 +737,7 @@ namespace PasswordChangeAssistant
 			PwProfSyncForm form = new PwProfSyncForm();
 			form.SetHomeDB(m_host.Database);
 			form.cbOpenUrlForPwChange.Checked = Config.OpenUrlForPwChange;
+			form.nupAutotypeDelay.Value = Config.AutotypeDelay;
 			Tools.AddPluginToOptionsForm(this, form);
 		}
 
@@ -735,6 +753,7 @@ namespace PasswordChangeAssistant
 			bool MoveProfiles = true;
 			form.GetWorklist(out profilesDB, out profilesOther, out otherDB, out MoveProfiles);
 			Config.OpenUrlForPwChange = form.cbOpenUrlForPwChange.Checked;
+			Config.AutotypeDelay = (int)form.nupAutotypeDelay.Value;
 			form.Dispose();
 
 			//Update password profiles in active database
