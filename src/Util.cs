@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
@@ -182,6 +183,63 @@ namespace PasswordChangeAssistant
 		internal static Image ScaleImage(Image img, int w, int h)
 		{
 			return KeePassLib.Utility.GfxUtil.ScaleImage(img, (int)(w * KeePass.UI.DpiUtil.FactorX), (int)(h * KeePass.UI.DpiUtil.FactorY));
+		}
+	}
+
+	public class PEDCalcStub
+	{
+		private KeePass.Plugins.Plugin _pedcalc = null;
+
+		private PropertyInfo _piActive = null;
+		private MethodInfo _miGetPEDValue = null;
+
+		public bool Loaded {  get { return _pedcalc != null; } }
+		public PEDCalcStub(KeePass.Plugins.Plugin p)
+		{
+			_pedcalc = p;
+			Initialize();
+		}
+
+		private void Initialize()
+		{
+			if (_pedcalc == null) return;
+			Type tC = _pedcalc.GetType().Assembly.GetType("PEDCalc.Configuration");
+			if (tC != null)
+			{
+				_piActive = tC.GetProperty("Active", BindingFlags.Public | BindingFlags.Static);
+			}
+			Type tEE = _pedcalc.GetType().Assembly.GetType("PEDCalc.EntryExtensions");
+			if (tEE != null)
+			{
+				_miGetPEDValue = tEE.GetMethod("GetPEDValue", BindingFlags.NonPublic | BindingFlags.Static);
+			}
+		}
+
+		public bool Active { get { return IsActive(); } }
+
+		public bool AdjustExpiryDateRequired(PwEntry pe)
+		{
+			if (_pedcalc == null) return false;
+			if (_miGetPEDValue == null) return false;
+			object pedNewExpireDate = _miGetPEDValue.Invoke(null, new object[] { pe, true });
+			bool bOff = (bool)pedNewExpireDate.GetType().GetProperty("Off").GetValue(pedNewExpireDate, null);
+			return !bOff;
+		}
+
+		public DateTime GetNewExpiryDateUtc(PwEntry pe, out object pedNewExpireDate)
+		{
+			pedNewExpireDate = new object();
+			if (_pedcalc == null) return DateTime.MaxValue;
+			if (_miGetPEDValue == null) return DateTime.MaxValue;
+			pedNewExpireDate = _miGetPEDValue.Invoke(null, new object[] { pe, true });
+			DateTime dtNewExpireDate = (DateTime)pedNewExpireDate.GetType().GetProperty("NewExpiryDateUtc").GetValue(pedNewExpireDate, null);
+			return dtNewExpireDate;
+		}
+
+		private bool IsActive()
+		{
+			if (_pedcalc != null && _piActive != null) return (bool)_piActive.GetValue(null, null);
+			return false;
 		}
 	}
 }

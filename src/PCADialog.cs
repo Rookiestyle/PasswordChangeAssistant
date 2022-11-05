@@ -269,52 +269,28 @@ namespace PasswordChangeAssistant
 					lMsg.Add("Error identifying selected entry");
 					return;
 				}
-				KeePass.Plugins.Plugin ped = (KeePass.Plugins.Plugin)Tools.GetPluginInstance("PEDCalc");
-				if (ped == null)
+				PEDCalcStub pedcalc = new PEDCalcStub((KeePass.Plugins.Plugin)Tools.GetPluginInstance("PEDCalc"));
+				if (!pedcalc.Loaded)
 				{
 					lMsg.Add("PEDCalc not found");
 					return;
 				}
 				lMsg.Add("PEDCalc found");
-				Type tC = ped.GetType().Assembly.GetType("PEDCalc.Configuration");
-				if (tC != null)
+				if (!pedcalc.Active)
 				{
-					bool bActive = false;
-					PropertyInfo piActive = tC.GetProperty("Active", BindingFlags.Public | BindingFlags.Static);
-					if (piActive != null) bActive = (bool)piActive.GetValue(null, null);
-					if (!bActive)
-					{
-						lMsg.Add("PEDCalc inactive");
-						return;
-					}
-				}
-				Type tEE = ped.GetType().Assembly.GetType("PEDCalc.EntryExtensions");
-				if (tEE == null)
-				{
-					lMsg.Add("Error retrieving PEDCalc.EntryExtensions");
+					lMsg.Add("PEDCalc inactive");
 					return;
 				}
-				MethodInfo miGetPEDValue = tEE.GetMethod("GetPEDValue", BindingFlags.NonPublic | BindingFlags.Static);
-				if (miGetPEDValue == null)
+				if (!pedcalc.AdjustExpiryDateRequired(pe))
 				{
-					lMsg.Add("Error retrieving method GetPEDValue");
+					lMsg.Add("PEDCalc result: Off, no recalculation neccessary");
 					return;
 				}
-				try
-				{
-					object pedNewExpireDate = miGetPEDValue.Invoke(null, new object[] { pe, true });
-					bool bOff = (bool)pedNewExpireDate.GetType().GetProperty("Off").GetValue(pedNewExpireDate, null);
-					if (bOff)
-					{
-						lMsg.Add("PEDCalc result: Off, no recalculation neccessary");
-						return;
-					}
-					DateTime dtNewExpireDate = (DateTime)pedNewExpireDate.GetType().GetProperty("NewExpiryDateUtc").GetValue(pedNewExpireDate, null); ;
-					EntryExpiry.Value = dtNewExpireDate.ToLocalTime();
-					lMsg.Add("PEDCalc result: " + pedNewExpireDate.ToString());
-					lMsg.Add("nNew expiry date:" + dtNewExpireDate.ToLocalTime().ToString());
-				}
-				catch { }
+				object pedNewExpireDate;
+				DateTime dtNewExpireDate = pedcalc.GetNewExpiryDateUtc(pe, out pedNewExpireDate);
+				EntryExpiry.Value = dtNewExpireDate.ToLocalTime();
+				lMsg.Add("PEDCalc result: " + pedNewExpireDate.ToString());
+				lMsg.Add("New expiry date:" + dtNewExpireDate.ToLocalTime().ToString());
 			}
 			finally { PluginDebug.AddInfo("Adjust expiry date according to PEDCalc", 0, lMsg.ToArray()); }
 		}
