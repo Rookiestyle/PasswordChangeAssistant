@@ -1,35 +1,32 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Linq;
-
-using KeePass;
+﻿using KeePass;
+using KeePass.App;
+using KeePass.App.Configuration;
 using KeePass.Forms;
 using KeePass.Resources;
 using KeePass.UI;
+using KeePass.Util;
+using KeePass.Util.Spr;
 using KeePassLib;
+using KeePassLib.Collections;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
-using KeePass.Util;
-using System.Reflection;
-
-using PluginTranslation;
-using PluginTools;
 using KeePassLib.Utility;
+using PluginTools;
+using PluginTranslation;
+using System;
 using System.Collections.Generic;
-using KeePass.App;
-using KeePass.App.Configuration;
-using KeePass.Util.Spr;
-using KeePassLib.Collections;
 using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
 
 namespace PasswordChangeAssistant
 {
-	public partial class PCADialog : Form, IGwmWindow
+    public partial class PCADialog : Form, IGwmWindow
 	{
 		#region members
 		private static MethodInfo m_miEncodeForCommandLine;
-		private static MethodInfo m_miCompile = null;
 
 		private PwInputControlGroup m_icgNewPassword = new PwInputControlGroup();
 		private OpenWithMenu m_dynOpenUrl;
@@ -65,13 +62,6 @@ namespace PasswordChangeAssistant
 			{
 				Type t = Program.MainForm.GetType().Assembly.GetType("KeePass.Util.Spr.SprEncoding");
 				m_miEncodeForCommandLine = t.GetMethod("EncodeForCommandLine", BindingFlags.Static | BindingFlags.NonPublic);
-			}
-			catch { }
-
-			try
-			{
-				Type t = typeof(Program).Assembly.GetType("KeePass.Util.WinUtil");
-				m_miCompile = t.GetMethod("CompileUrl", BindingFlags.Static | BindingFlags.NonPublic);
 			}
 			catch { }
 		}
@@ -300,6 +290,7 @@ namespace PasswordChangeAssistant
 		private void OnOpenUrl(object sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(sURL)) return;
+			string sDereferenced = m_pcadata.GetDereferenced(sURL);
 			try
 			{
 				if ((sender as ToolStripMenuItem).Tag != null)
@@ -309,20 +300,20 @@ namespace PasswordChangeAssistant
 					string strApp = (string)it.GetType().GetProperty("FilePath").GetValue(it, null);
 
 					if (iFilePathType == 0) //OwFilePathType.Executable
-						WinUtil.OpenUrlWithApp(sURL, m_pcadata.Entry, strApp);
+						WinUtil.OpenUrlWithApp(sDereferenced, m_pcadata.Entry, strApp);
 					else if (iFilePathType == 1) //OwFilePathType.ShellExpand
 					{
 						string str = string.Empty;
 						if (m_miEncodeForCommandLine != null)
-							str = strApp.Replace(PlhTargetUri, (string)m_miEncodeForCommandLine.Invoke(null, new object[] { sURL }));
+							str = strApp.Replace(PlhTargetUri, (string)m_miEncodeForCommandLine.Invoke(null, new object[] { sDereferenced }));
 						else
-							str = strApp.Replace(PlhTargetUri, sURL);
+							str = strApp.Replace(PlhTargetUri, sDereferenced);
 						WinUtil.OpenUrl(str, m_pcadata.Entry, true);
 					}
 				}
 				else
 				{
-					Tools.OpenUrl(sURL);
+					Tools.OpenUrl(sDereferenced);
 				}
 			}
 			catch { }
@@ -331,7 +322,8 @@ namespace PasswordChangeAssistant
 		private void OnCopyUrl(object sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(sURL)) return;
-			if (ClipboardUtil.CopyAndMinimize(sURL, true, this, m_pcadata.Entry, Program.MainForm.ActiveDatabase))
+			string sDereferenced = m_pcadata.GetDereferenced(sURL);
+			if (ClipboardUtil.CopyAndMinimize(sDereferenced, true, this, m_pcadata.Entry, Program.MainForm.ActiveDatabase))
 				Program.MainForm.StartClipboardCountdown();
 		}
 
@@ -411,8 +403,9 @@ namespace PasswordChangeAssistant
 			lURL.Text = KPRes.Url + ": " + KPRes.Empty;
 			if (!string.IsNullOrEmpty(m_pcadata.MainURL))
 			{
-				string url = CompileUrl(m_pcadata.MainURL);
+				//string url = CompileUrl(m_pcadata.MainURL);
 				lURL.Links.Add(KPRes.Url.Length + 2, m_pcadata.MainURL.Length, m_pcadata.MainURL);
+				lURL.ContextMenuStrip.Opening += CtxOpenWith_Opening;
 				lURL.Text = KPRes.Url + ": " + GetDisplayUrl(m_pcadata.MainURL, 60);
 			}
 
@@ -423,11 +416,15 @@ namespace PasswordChangeAssistant
 			if (!string.IsNullOrEmpty(m_pcadata.PCAURL)) tbURL2.Text = m_pcadata.PCAURL;
 		}
 
-		private string CompileUrl(string url)
+		private void CtxOpenWith_Opening(object sender, CancelEventArgs e)
 		{
-			if (m_miCompile == null) return url;
-			if (url.IndexOf('{') < 0) return url;
-			return (string)m_miCompile.Invoke(null, new object[] { url.Substring(url.IndexOf('{')), m_pcadata.Entry, true, string.Empty, null });
+			bool bEnabled = !WinUtil.IsCommandLineUrl(sURL);
+			foreach (var x in ctxOpenWith.Items)
+			{
+				if (!(x is ToolStripMenuItem)) continue;
+				if (x == tsmiOpen || x == tsmiCopy) continue;
+				(x as ToolStripMenuItem).Enabled = bEnabled;
+ 			}
 		}
 		#endregion
 

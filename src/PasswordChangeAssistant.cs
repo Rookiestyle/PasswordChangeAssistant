@@ -16,6 +16,7 @@ using System.Linq;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Collections;
 using KeePassLib.Cryptography;
+using KeePass.Util.Spr;
 
 namespace PasswordChangeAssistant
 {
@@ -32,8 +33,6 @@ namespace PasswordChangeAssistant
 		private List<PwProfile> m_profiles = new List<PwProfile>();
 		
 		private PCADialog m_pcaForm = null;
-
-		private MethodInfo m_miSprCompileFn = null;
 
 		public override bool Initialize(IPluginHost host)
 		{
@@ -61,8 +60,6 @@ namespace PasswordChangeAssistant
 			Tools.OptionsFormClosed += OptionsFormClosed;
 			m_host.PwGeneratorPool.Add(new PwProfile1PerSet());
 
-			Type t = typeof(KeePass.Program).Assembly.GetType("KeePass.UI.AsyncPwListUpdate");
-			m_miSprCompileFn = t.GetMethod("SprCompileFn", BindingFlags.Static | BindingFlags.NonPublic);
 			return true;
 		}
 
@@ -183,7 +180,6 @@ namespace PasswordChangeAssistant
 			if (m_host.MainWindow.GetSelectedEntriesCount() != 1) return;
 			m_pcaForm = new PCADialog();
 			PCAInitData pcadata = new PCAInitData(m_host.MainWindow.GetSelectedEntry(true));
-			DerefStrings(pcadata, pcadata.Entry);
 			m_pcaForm.Init(pcadata, ProfilesOpening);
 			Config.OpenUrlForPwChange_Init();
 			if (Config.OpenUrlForPwChange ^ ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)) 
@@ -426,7 +422,6 @@ namespace PasswordChangeAssistant
 				pcadata.Expiry = ecg.Value;
 				pcadata.SetExpiry = (pcadata.Expires != m_pweForm.EntryRef.Expires) || (pcadata.Expiry != m_pweForm.EntryRef.ExpiryTime);
 			}
-			DerefStrings(pcadata, m_pweForm.EntryRef);
 			m_pcaForm.Init(pcadata, ProfilesOpening);
 			Config.OpenUrlForPwChange_Init();
 			if (Config.OpenUrlForPwChange ^ ((Control.ModifierKeys & Keys.Shift) == Keys.Shift))
@@ -554,22 +549,6 @@ namespace PasswordChangeAssistant
 		#endregion
 
 		#region password change functionality
-		//Dereference placeholders in URL fields
-		private void DerefStrings(PCAInitData pcadata, PwEntry pe)
-		{
-			if (m_miSprCompileFn == null) return;
-			if (pcadata.MainURL.Contains("{"))
-			{
-				PwListItem pli = new PwListItem(pe);
-				pcadata.MainURL = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.MainURL, pli });
-			}
-			if (pcadata.PCAURL.Contains("{"))
-			{
-				PwListItem pli = new PwListItem(pe);
-				pcadata.PCAURL = (string)m_miSprCompileFn.Invoke(null, new object[] { pcadata.PCAURL, pli });
-			}
-		}
-
 		internal static void PasswordType(PwEntry pe, ProtectedString ps)
 		{
 			var bAddedDelay = AddDelay();

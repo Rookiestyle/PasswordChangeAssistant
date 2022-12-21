@@ -1,4 +1,7 @@
-﻿using KeePassLib;
+﻿using KeePass;
+using KeePass.UI;
+using KeePass.Util.Spr;
+using KeePassLib;
 using KeePassLib.Collections;
 using KeePassLib.Security;
 using PluginTools;
@@ -26,6 +29,36 @@ namespace PasswordChangeAssistant
 		public bool Expires;
 		public bool SetExpiry;
 		public string PCASequence;
+
+		private static MethodInfo m_miSprCompileFn = null;
+		private static MethodInfo m_miGetEntryListSprContext = null;
+		
+		static PCAInitData()
+		{
+			Type t = typeof(Program).Assembly.GetType("KeePass.UI.AsyncPwListUpdate");
+			m_miSprCompileFn = t.GetMethod("SprCompileFn", BindingFlags.Static | BindingFlags.NonPublic);
+			m_miGetEntryListSprContext = typeof(KeePass.Forms.MainForm).GetMethod("GetEntryListSprContext", BindingFlags.Static | BindingFlags.NonPublic);
+		}
+
+		public string GetDereferenced(string sUrl)
+		{
+			if (m_miSprCompileFn == null && m_miGetEntryListSprContext == null) return sUrl;
+			if (!sUrl.Contains("{")) return sUrl;
+			if (m_miGetEntryListSprContext != null)
+			{
+				var ctx = (SprContext)m_miGetEntryListSprContext.Invoke(Program.MainForm, new object[] { Entry, Program.MainForm.DocumentManager.SafeFindContainerOf(Entry) });
+				sUrl = SprEngine.Compile(sUrl, ctx);
+			}
+			else
+			{
+				PwListItem pli = new PwListItem(Entry);
+				bool bEntryListShowDerefDataAndRefs = Program.Config.MainWindow.EntryListShowDerefDataAndRefs;
+				Program.Config.MainWindow.EntryListShowDerefDataAndRefs = false;
+				sUrl = (string)m_miSprCompileFn.Invoke(null, new object[] { sUrl, pli });
+				Program.Config.MainWindow.EntryListShowDerefDataAndRefs = bEntryListShowDerefDataAndRefs;
+			}
+			return sUrl;
+		}
 
 		public PCAInitData(PwEntry pe)
 		{
@@ -61,6 +94,8 @@ namespace PasswordChangeAssistant
 			string URL = PCAURL;
 			if (string.IsNullOrEmpty(URL)) URL = MainURL;
 			if (string.IsNullOrEmpty(URL)) return;
+
+			URL = GetDereferenced(URL);
 
 			KeePass.Util.WinUtil.OpenUrl(URL, m_pe, true);
 		}
