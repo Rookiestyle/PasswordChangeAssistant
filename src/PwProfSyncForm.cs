@@ -46,6 +46,15 @@ namespace PasswordChangeAssistant
 			cbOpenUrlForPwChange.Text = PluginTranslate.OpenUrlForPwChange;
 			lOpenUrlForPwChangeShift.Text = PluginTranslate.OpenUrlForPwChangeShift;
 			lAutotypeDelay.Text = PluginTranslate.AutotypeDelay;
+
+			gHideBuildInProfiles.Text = "Password Generator";
+			string strTypeName = typeof(KeePass.Forms.PwGeneratorForm).FullName;
+			foreach (KeePassLib.Translation.KPFormCustomization kpfc in KeePass.Program.Translation.Forms)
+			{
+				if (kpfc.FullName != strTypeName) continue;
+				gHideBuildInProfiles.Text = kpfc.Window.Text;
+			}
+			cbHideBuiltInProfiles.Text = PluginTranslate.HideBuiltInProfiles;
 		}
 
 		public void SetHomeDB(PwDatabase db)

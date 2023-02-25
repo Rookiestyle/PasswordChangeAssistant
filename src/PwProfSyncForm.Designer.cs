@@ -41,20 +41,25 @@
             this.lbProfilesOther = new System.Windows.Forms.ListBox();
             this.tpOptions = new System.Windows.Forms.TabControl();
             this.tpPCA = new System.Windows.Forms.TabPage();
+            this.gHideBuildInProfiles = new System.Windows.Forms.GroupBox();
+            this.cbHideBuiltInProfiles = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.gPWFormShown = new System.Windows.Forms.GroupBox();
+            this.lAutotypeDelay = new System.Windows.Forms.Label();
+            this.nupAutotypeDelay = new System.Windows.Forms.NumericUpDown();
             this.lOpenUrlForPwChangeShift = new System.Windows.Forms.Label();
             this.cbOpenUrlForPwChange = new System.Windows.Forms.CheckBox();
             this.tpPWSync = new System.Windows.Forms.TabPage();
-            this.nupAutotypeDelay = new System.Windows.Forms.NumericUpDown();
-            this.lAutotypeDelay = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tlpProfiles.SuspendLayout();
             this.pButtons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbPluginPicture)).BeginInit();
             this.tpOptions.SuspendLayout();
             this.tpPCA.SuspendLayout();
+            this.gHideBuildInProfiles.SuspendLayout();
             this.gPWFormShown.SuspendLayout();
-            this.tpPWSync.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nupAutotypeDelay)).BeginInit();
+            this.tpPWSync.SuspendLayout();
             this.SuspendLayout();
             // 
             // lError
@@ -220,6 +225,8 @@
             // 
             // tpPCA
             // 
+            this.tpPCA.Controls.Add(this.gHideBuildInProfiles);
+            this.tpPCA.Controls.Add(this.groupBox1);
             this.tpPCA.Controls.Add(this.gPWFormShown);
             this.tpPCA.Location = new System.Drawing.Point(10, 48);
             this.tpPCA.Name = "tpPCA";
@@ -228,6 +235,36 @@
             this.tpPCA.TabIndex = 0;
             this.tpPCA.Text = "tabPage1";
             this.tpPCA.UseVisualStyleBackColor = true;
+            // 
+            // gHideBuildInProfiles
+            // 
+            this.gHideBuildInProfiles.Controls.Add(this.cbHideBuiltInProfiles);
+            this.gHideBuildInProfiles.Dock = System.Windows.Forms.DockStyle.Top;
+            this.gHideBuildInProfiles.Location = new System.Drawing.Point(3, 244);
+            this.gHideBuildInProfiles.Name = "gHideBuildInProfiles";
+            this.gHideBuildInProfiles.Size = new System.Drawing.Size(1173, 100);
+            this.gHideBuildInProfiles.TabIndex = 2;
+            this.gHideBuildInProfiles.TabStop = false;
+            this.gHideBuildInProfiles.Text = "groupBox2";
+            // 
+            // cbHideBuiltInProfiles
+            // 
+            this.cbHideBuiltInProfiles.AutoSize = true;
+            this.cbHideBuiltInProfiles.Location = new System.Drawing.Point(12, 46);
+            this.cbHideBuiltInProfiles.Name = "cbHideBuiltInProfiles";
+            this.cbHideBuiltInProfiles.Size = new System.Drawing.Size(318, 36);
+            this.cbHideBuiltInProfiles.TabIndex = 0;
+            this.cbHideBuiltInProfiles.Text = "cbHideBuiltInProfiles";
+            this.cbHideBuiltInProfiles.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(-66, -86);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(200, 100);
+            this.groupBox1.TabIndex = 1;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "groupBox1";
             // 
             // gPWFormShown
             // 
@@ -242,6 +279,22 @@
             this.gPWFormShown.TabIndex = 0;
             this.gPWFormShown.TabStop = false;
             this.gPWFormShown.Text = "gPWFormShown";
+            // 
+            // lAutotypeDelay
+            // 
+            this.lAutotypeDelay.AutoSize = true;
+            this.lAutotypeDelay.Location = new System.Drawing.Point(159, 159);
+            this.lAutotypeDelay.Name = "lAutotypeDelay";
+            this.lAutotypeDelay.Size = new System.Drawing.Size(222, 32);
+            this.lAutotypeDelay.TabIndex = 3;
+            this.lAutotypeDelay.Text = "Auto-Type delay";
+            // 
+            // nupAutotypeDelay
+            // 
+            this.nupAutotypeDelay.Location = new System.Drawing.Point(12, 157);
+            this.nupAutotypeDelay.Name = "nupAutotypeDelay";
+            this.nupAutotypeDelay.Size = new System.Drawing.Size(120, 38);
+            this.nupAutotypeDelay.TabIndex = 2;
             // 
             // lOpenUrlForPwChangeShift
             // 
@@ -274,22 +327,6 @@
             this.tpPWSync.Text = "tabPage2";
             this.tpPWSync.UseVisualStyleBackColor = true;
             // 
-            // nupAutotypeDelay
-            // 
-            this.nupAutotypeDelay.Location = new System.Drawing.Point(12, 157);
-            this.nupAutotypeDelay.Name = "nupAutotypeDelay";
-            this.nupAutotypeDelay.Size = new System.Drawing.Size(120, 38);
-            this.nupAutotypeDelay.TabIndex = 2;
-            // 
-            // lAutotypeDelay
-            // 
-            this.lAutotypeDelay.AutoSize = true;
-            this.lAutotypeDelay.Location = new System.Drawing.Point(159, 159);
-            this.lAutotypeDelay.Name = "lAutotypeDelay";
-            this.lAutotypeDelay.Size = new System.Drawing.Size(222, 32);
-            this.lAutotypeDelay.TabIndex = 3;
-            this.lAutotypeDelay.Text = "Auto-Type delay";
-            // 
             // PwProfSyncForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 31F);
@@ -306,11 +343,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.pbPluginPicture)).EndInit();
             this.tpOptions.ResumeLayout(false);
             this.tpPCA.ResumeLayout(false);
+            this.gHideBuildInProfiles.ResumeLayout(false);
+            this.gHideBuildInProfiles.PerformLayout();
             this.gPWFormShown.ResumeLayout(false);
             this.gPWFormShown.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nupAutotypeDelay)).EndInit();
             this.tpPWSync.ResumeLayout(false);
             this.tpPWSync.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nupAutotypeDelay)).EndInit();
             this.ResumeLayout(false);
 
 		}
@@ -335,5 +374,9 @@
 		private System.Windows.Forms.Label lOpenUrlForPwChangeShift;
         private System.Windows.Forms.Label lAutotypeDelay;
         internal System.Windows.Forms.NumericUpDown nupAutotypeDelay;
+        private System.Windows.Forms.GroupBox gHideBuildInProfiles;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        internal System.Windows.Forms.CheckBox cbHideBuiltInProfiles;
     }
 }

@@ -165,6 +165,10 @@ You can change this in the plugin's options anytime.";
 		/// Auto-Type delay (seconds)
 		/// </summary>
 		public static readonly string AutotypeDelay = @"Auto-Type delay (seconds)";
+		/// <summary>
+		/// Hide built-in password profiles
+		/// </summary>
+		public static readonly string HideBuiltInProfiles = @"Hide built-in password profiles";
 		#endregion
 
 		#region NO changes in this area

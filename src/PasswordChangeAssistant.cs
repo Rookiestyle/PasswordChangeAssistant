@@ -60,6 +60,8 @@ namespace PasswordChangeAssistant
 			Tools.OptionsFormClosed += OptionsFormClosed;
 			m_host.PwGeneratorPool.Add(new PwProfile1PerSet());
 
+			if (Config.HideBuiltInProfiles) HideBuiltInProfiles();
+
 			return true;
 		}
 
@@ -126,6 +128,25 @@ namespace PasswordChangeAssistant
 				}
 			}
 			PwProfile1PerSet.EnablePwGeneratorControls(sender, e);
+		}
+
+		private void HideBuiltInProfiles()
+		{
+			PwGeneratorUtil.BuiltInProfiles.Clear();
+		}
+
+		private void RestoreBuiltInProfiles()
+		{
+			var t = KeePass.Program.MainForm.GetType().Assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains("PwGeneratorUtil"));
+			if (t == null) return;
+			var m_lBuiltIn = t.GetField("m_lBuiltIn", BindingFlags.NonPublic | BindingFlags.Static);
+			if (m_lBuiltIn != null)
+			{
+				m_lBuiltIn.SetValue(null, null);
+				return;
+			}
+			var m_AllocStandardProfiles = t.GetMethod("AllocStandardProfiles", BindingFlags.NonPublic | BindingFlags.Static);
+			if (m_AllocStandardProfiles != null) m_AllocStandardProfiles.Invoke(null, null);
 		}
 
 		private void OnFormClosed(object sender, FormClosedEventArgs e)
@@ -717,6 +738,7 @@ namespace PasswordChangeAssistant
 			form.SetHomeDB(m_host.Database);
 			form.cbOpenUrlForPwChange.Checked = Config.OpenUrlForPwChange;
 			form.nupAutotypeDelay.Value = Config.AutotypeDelay;
+			form.cbHideBuiltInProfiles.Checked = Config.HideBuiltInProfiles;
 			Tools.AddPluginToOptionsForm(this, form);
 		}
 
@@ -733,6 +755,12 @@ namespace PasswordChangeAssistant
 			form.GetWorklist(out profilesDB, out profilesOther, out otherDB, out MoveProfiles);
 			Config.OpenUrlForPwChange = form.cbOpenUrlForPwChange.Checked;
 			Config.AutotypeDelay = (int)form.nupAutotypeDelay.Value;
+			if (Config.HideBuiltInProfiles != form.cbHideBuiltInProfiles.Checked)
+			{
+				Config.HideBuiltInProfiles = form.cbHideBuiltInProfiles.Checked;
+				if (Config.HideBuiltInProfiles) HideBuiltInProfiles();
+				else RestoreBuiltInProfiles();
+			}
 			form.Dispose();
 
 			//Update password profiles in active database
