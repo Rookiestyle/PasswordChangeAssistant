@@ -45,6 +45,10 @@ Here you can move existing profiles in various directions
 - From an open database to the global KeePass configuration
 - From the global KeePass configuration to an open database
 
+Storing a password profile does **not** increase security. The password profile/pattern is not a secret, only the generated password is secret.  
+This option is added for convenience reasons. A password profile stored within the database is part of synchronization.  
+If you synchronize a database between two devices and have PasswordChangeAssistant installed on both of them, changing or adding a profile on device A will be synchronized to device B.
+
 ![Profile sync](images/PasswordChangeAssistant%20-%20Options.png)
 
 ## Password profile: At least 1 per set  
