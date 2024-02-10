@@ -331,7 +331,6 @@ namespace PasswordChangeAssistant
 
       bGenPw.RemoveEventHandlers("Click", oldEventHanderClick);
       bGenPw.Click += OnPwGenClick;
-      bGenPw.Tag = oldEventHanderClick[0].Target;
       PluginDebug.AddSuccess("Hooking m_btnGenPw", 0);
     }
 
@@ -345,22 +344,26 @@ namespace PasswordChangeAssistant
         return;
       }
 
-      object myPwGeneratorMenu = bGenPw.Tag;
-      if (myPwGeneratorMenu == null)
+      //var mConstructContextMenu = myPwGeneratorMenu.GetType().GetMethod("ConstructContextMenu", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+      //KeeTheme might change this, we need to search it using the form as starting point...
+      var fGenPwForm = bGenPw.FindForm();
+      var pwGeneratorMenuField = fGenPwForm.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).FirstOrDefault(x => x.FieldType.Name == "PwGeneratorMenu");
+      if (pwGeneratorMenuField == null)
       {
-        PluginDebug.AddError("Hooking password profile display", 0, "No PwGeneratorMenu found");
+        PluginDebug.AddError("Hooking password profile display", 0, "pwGeneratorMenuField not found");
         return;
       }
-
-      var mConstructContextMenu = myPwGeneratorMenu.GetType().GetMethod("ConstructContextMenu", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+      var mConstructContextMenu = pwGeneratorMenuField.FieldType.GetMethod("ConstructContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
       if (mConstructContextMenu == null)
       {
         PluginDebug.AddError("Hooking password profile display", 0, "Method ConstructContextMenu not found");
         return;
       }
-      mConstructContextMenu.Invoke(myPwGeneratorMenu, null);
+      var pwGeneratorMenu = pwGeneratorMenuField.GetValue(fGenPwForm);
+      mConstructContextMenu.Invoke(pwGeneratorMenu, null);
 
-      ContextMenuStrip ctx = Tools.GetField("m_ctx", myPwGeneratorMenu) as ContextMenuStrip;
+      var contextMenuField = pwGeneratorMenuField.FieldType.GetField("m_ctx", BindingFlags.Instance | BindingFlags.NonPublic);
+      var ctx = contextMenuField.GetValue(pwGeneratorMenu) as ContextMenuStrip;
       if (ctx == null)
       {
         PluginDebug.AddError("Hooking password profile display", 0, "Context menu not found");
