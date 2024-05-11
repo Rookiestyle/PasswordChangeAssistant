@@ -242,10 +242,43 @@ namespace PasswordChangeAssistant
           EntryExpiry.Value = DateTime.Now.AddMonths(6).ToLocalTime();
         EntryExpiry.Checked = true;
       }
-      else return;
+//      else return;
 
       //Let's see whether PEDCalc is installed and active
       CheckPEDCalc();
+
+      //Let's see whether KeePassCPOEc is installed and active
+      CheckKeePassCPOE();
+    }
+
+    private void CheckKeePassCPOE()
+    {
+      KeePassCPEOStub kpcpoe = new KeePassCPEOStub((KeePass.Plugins.Plugin)Tools.GetPluginInstance("KeePassCPEO"));
+      if (!kpcpoe.Loaded) return;
+      if (kpcpoe.CustomOptions.Count == 0) return;
+      m_ctxDefaultTimes.Items.Add(new ToolStripSeparator());
+      foreach (var co in kpcpoe.CustomOptions)
+      {
+        var tsmi = new ToolStripMenuItem() { Text = co.ToString(), Tag = co };
+        tsmi.Click += OnKPCPOEClick;
+        m_ctxDefaultTimes.Items.Add(tsmi);
+      }
+    }
+
+    private void OnKPCPOEClick(object sender, EventArgs e)
+    {
+      var tsmi = sender as ToolStripMenuItem;
+      var x = tsmi.Tag.GetType().GetProperties();
+      var y = tsmi.Tag.GetType().GetProperty("Years").GetValue(tsmi.Tag, null);
+      var m = tsmi.Tag.GetType().GetProperty("Months").GetValue(tsmi.Tag, null);
+      var d = tsmi.Tag.GetType().GetProperty("Days").GetValue(tsmi.Tag, null);
+
+      if (y == null || m == null || d == null) return;
+      var dt = Program.MainForm.GetSelectedEntry(true).ExpiryTime;
+      dt = dt.AddYears((int)y);
+      dt = dt.AddMonths((int)y);
+      dt = dt.AddDays((int)d);
+      EntryExpiry.Value = dt.ToLocalTime();
     }
 
     private void CheckPEDCalc()

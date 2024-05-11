@@ -249,6 +249,30 @@ namespace PasswordChangeAssistant
     }
   }
 
+  public class KeePassCPEOStub
+  {
+    private KeePass.Plugins.Plugin _p = null;
+    public bool Loaded { get { return _p != null; } }
+
+    public List<object> CustomOptions = new List<object>();
+    public KeePassCPEOStub(KeePass.Plugins.Plugin p)
+    {
+      _p = p;
+      Initialize();
+    }
+
+    private void Initialize()
+    {
+      if (!Loaded) return;
+      var mi = _p.GetType().GetMember("CustomDateOptions");
+      if (mi == null) return;
+      var pi = ((PropertyInfo)mi[0]).GetValue(_p, null) as IEnumerable<object>;
+      if (pi == null) return;
+      foreach (var co in pi)
+        CustomOptions.Add(co);
+    }
+  }
+
   public class PEDCalcStub
   {
     private KeePass.Plugins.Plugin _pedcalc = null;
